@@ -1,0 +1,21 @@
+{
+  "name": "Subly — Mes abonnements",
+  "short_name": "Subly",
+  "description": "Suivez vos abonnements, leurs échéances et votre budget mensuel.",
+  "lang": "fr",
+  "start_url": "/abonnement/",
+  "scope": "/abonnement/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "categories": ["finance", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/abonnement/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
