@@ -36,9 +36,15 @@ export const providers: Provider[] = [
   { id: 'free', name: 'Free', category: 'Télécom', logo: favicon('free.fr'), website: 'https://free.fr', color: '#CD1F2B' },
   { id: 'sfr', name: 'SFR', category: 'Télécom', logo: favicon('sfr.fr'), website: 'https://sfr.fr', color: '#E2001A' },
   { id: 'bouygues', name: 'Bouygues Telecom', category: 'Télécom', logo: favicon('bouyguestelecom.fr'), website: 'https://bouyguestelecom.fr', color: '#009FE3' },
+  { id: 'redsfr', name: 'RED by SFR', category: 'Télécom', logo: favicon('red-by-sfr.fr'), website: 'https://www.red-by-sfr.fr', color: '#EF3123' },
+  { id: 'matmut', name: 'Matmut', category: 'Assurance', logo: favicon('matmut.fr'), website: 'https://www.matmut.fr', color: '#008E7D' },
+  { id: 'edf', name: 'EDF', category: 'Énergie', logo: favicon('edf.fr'), website: 'https://particulier.edf.fr', color: '#FF7A00' },
+  { id: 'navigo', name: 'Navigo · Île-de-France Mobilités', category: 'Transport', logo: favicon('iledefrance-mobilites.fr'), website: 'https://www.iledefrance-mobilites.fr', color: '#6E45FF' },
+  { id: 'basicfit', name: 'Basic-Fit', category: 'Fitness', logo: favicon('basic-fit.com'), website: 'https://www.basic-fit.com/fr-fr', color: '#F58220' },
+  { id: 'opencode', name: 'OpenCode', category: 'IA', logo: favicon('opencode.ai'), website: 'https://opencode.ai', color: '#111827' },
 ]
 
-export const categories = ['Streaming', 'Musique', 'IA', 'Cloud', 'Productivité', 'Gaming', 'Sport', 'Télécom', 'Autre'] as const
+export const categories = ['Streaming', 'Musique', 'IA', 'Cloud', 'Productivité', 'Gaming', 'Sport', 'Télécom', 'Assurance', 'Énergie', 'Transport', 'Fitness', 'Autre'] as const
 
 export const customLogo = (website?: string) =>
   website ? favicon(website.replace(/^https?:\/\//, '').split('/')[0]) : ''
