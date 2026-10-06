@@ -105,7 +105,7 @@ input, select, textarea { color: var(--text); }
 
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(290px, .75fr); gap: 18px; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; }
-.upcoming-panel, .budget-panel { padding: 22px; }
+.upcoming-panel { padding: 22px; }
 .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 17px; }
 .panel-header h2 { margin: 3px 0 0; font-size: 18px; letter-spacing: -.45px; }
 
@@ -127,19 +127,6 @@ input, select, textarea { color: var(--text); }
 .provider-logo--md { width: 48px; height: 48px; }
 .provider-logo--lg { width: 58px; height: 58px; }
 
-.budget-panel { display: flex; flex-direction: column; }
-.budget-ring-wrap { display: grid; place-items: center; padding: 7px 0 16px; }
-.budget-ring { width: 145px; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--accent) var(--p), var(--panel-2) 0); position: relative; }
-.budget-ring::after { content: ""; position: absolute; width: 112px; aspect-ratio: 1; border-radius: 50%; background: var(--panel); }
-.budget-ring > div { z-index: 1; display: grid; text-align: center; gap: 2px; }
-.budget-ring strong { font-size: 25px; letter-spacing: -.8px; }
-.budget-ring span { color: var(--muted); font-size: 10px; }
-.budget-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; }
-.budget-numbers span { display: grid; gap: 3px; }
-.budget-numbers small { color: var(--muted); font-size: 10px; }
-.budget-numbers strong { font-size: 14px; }
-.budget-note { margin-top: 13px; padding: 10px 11px; border-radius: 10px; background: rgba(45,212,162,.08); color: var(--success); font-size: 11px; }
-.budget-note.negative { background: rgba(255,101,119,.08); color: var(--danger); }
 
 .empty-state { min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
 .empty-icon { width: 58px; height: 58px; border-radius: 18px; background: var(--accent-soft); color: var(--accent-2); display: grid; place-items: center; margin-bottom: 13px; }
@@ -178,19 +165,9 @@ input, select, textarea { color: var(--text); }
 .renewal-row.urgent { color: var(--warning); }
 .renewal-row.overdue { color: var(--danger); }
 
-.budget-hero { padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 30px; }
-.budget-hero h2 { font-size: 30px; margin: 6px 0 3px; letter-spacing: -1px; }
-.budget-hero h2 span { color: var(--muted); font-weight: 500; font-size: 17px; }
-.budget-hero p { color: var(--muted); margin: 0; font-size: 12px; }
-.budget-edit { min-width: 220px; }
-.budget-edit label { display: block; color: var(--muted); font-size: 10px; margin-bottom: 7px; }
 .money-input { position: relative; display: flex; align-items: center; }
 .money-input input { width: 100%; min-height: 43px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 0 38px 0 12px; outline: none; }
 .money-input span { position: absolute; right: 13px; color: var(--muted); }
-.budget-progress { height: 8px; background: var(--panel-2); border-radius: 20px; margin: 15px 0 20px; overflow: hidden; }
-.budget-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--accent),var(--accent-2)); }
-.budget-layout { display: grid; grid-template-columns: minmax(0,1.3fr) minmax(280px,.7fr); gap: 18px; }
-.budget-layout .panel { padding: 22px; }
 .category-spend-list { display: grid; gap: 17px; }
 .category-spend > div:first-child { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; font-size: 12px; }
 .category-spend strong { font-size: 12px; }
@@ -252,9 +229,7 @@ input, select, textarea { color: var(--text); }
 @media (max-width: 1100px) {
   .metrics-grid { grid-template-columns: repeat(2,1fr); }
   .subscriptions-grid { grid-template-columns: repeat(2,1fr); }
-  .dashboard-grid, .budget-layout { grid-template-columns: 1fr; }
-  .budget-panel { min-height: 350px; }
-}
+  .dashboard-grid,   }
 
 @media (max-width: 780px) {
   .sidebar { display: none; }
@@ -270,8 +245,7 @@ input, select, textarea { color: var(--text); }
   .metric-card > strong { font-size: 21px; }
   .metric-icon { margin-bottom: 12px; }
   .dashboard-grid { gap: 12px; }
-  .upcoming-panel, .budget-panel { padding: 16px; }
-  .renewal-item { grid-template-columns: auto minmax(0,1fr) auto; gap: 9px; }
+  .upcoming-panel,   .renewal-item { grid-template-columns: auto minmax(0,1fr) auto; gap: 9px; }
   .renewal-price, .renewal-chevron { display: none; }
   .renewal-badge { font-size: 9px; padding: 5px 7px; }
   .toolbar { align-items: stretch; flex-direction: column; }
@@ -282,10 +256,7 @@ input, select, textarea { color: var(--text); }
   .subscriptions-grid { grid-template-columns: 1fr; gap: 10px; }
   .subscription-card { padding: 15px; }
   .sub-actions { opacity: 1; }
-  .budget-hero { align-items: stretch; flex-direction: column; padding: 18px; gap: 20px; }
-  .budget-edit { min-width: 0; }
-  .budget-layout .panel { padding: 17px; }
-  .settings-card { grid-template-columns: auto 1fr; padding: 15px; }
+        .settings-card { grid-template-columns: auto 1fr; padding: 15px; }
   .settings-card > button, .settings-actions { grid-column: 1 / -1; width: 100%; }
   .settings-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .settings-card > button { justify-self: stretch; }
@@ -311,8 +282,7 @@ input, select, textarea { color: var(--text); }
   .metric-card { min-height: 134px; }
   .metric-card:nth-child(2) .metric-icon, .metric-card:nth-child(4) .metric-icon { display: none; }
   .metric-card:nth-child(2), .metric-card:nth-child(4) { justify-content: flex-end; }
-  .budget-ring { width: 132px; }
-}
+  }
 
 
 /* Supabase authentication & sync */
