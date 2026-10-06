@@ -9,6 +9,10 @@ export type Category =
   | 'Gaming'
   | 'Sport'
   | 'Télécom'
+  | 'Assurance'
+  | 'Énergie'
+  | 'Transport'
+  | 'Fitness'
   | 'Autre'
 
 export type Provider = {
