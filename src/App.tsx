@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import {
   Bell,
   BellRing,
@@ -6,12 +7,17 @@ import {
   Check,
   ChevronRight,
   CircleDollarSign,
+  Cloud,
   Download,
   Edit3,
   Home,
+  LockKeyhole,
+  LogOut,
+  Mail,
   Moon,
   MoreHorizontal,
   Plus,
+  RefreshCw,
   Search,
   Settings as SettingsIcon,
   SlidersHorizontal,
@@ -19,10 +25,21 @@ import {
   Sun,
   Trash2,
   Upload,
+  UserPlus,
   WalletCards,
   X,
 } from 'lucide-react'
 import { categories, customLogo, providers } from './data/providers'
+import { supabase } from './lib/supabase'
+import {
+  loadSubscriptions,
+  loadUserSettings,
+  removeAllSubscriptions,
+  removeSubscription,
+  saveUserSettings,
+  upsertSubscription,
+  upsertSubscriptions,
+} from './lib/subscriptionsDb'
 import type {
   BillingCycle,
   Category,
@@ -37,6 +54,7 @@ import {
   formatDate,
   formatMoney,
   nextRenewalLabel,
+  rollAutoRenewalForward,
   subscriptionMonthlyTotal,
   toAnnual,
   toMonthly,
@@ -385,6 +403,7 @@ function SubscriptionCard({
             <h3>{item.name}</h3>
             {item.status === 'trial' && <span className="status-chip trial">Essai</span>}
             {item.status === 'paused' && <span className="status-chip paused">Pause</span>}
+            {item.autoRenew && <span className="status-chip auto">Auto</span>}
           </div>
           <span className="category-label">{item.category}</span>
         </div>
@@ -404,9 +423,80 @@ function SubscriptionCard({
   )
 }
 
+
+function AuthScreen() {
+  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      if (mode === 'login') {
+        const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+        if (authError) throw authError
+      } else {
+        const { data, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: `${window.location.origin}/abonnement/` },
+        })
+        if (authError) throw authError
+        if (!data.session) {
+          setError('Compte créé. Vérifie ton e-mail pour confirmer ton inscription, puis reconnecte-toi.')
+        }
+      }
+    } catch (value) {
+      setError(value instanceof Error ? value.message : 'Connexion impossible.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="auth-screen">
+      <div className="auth-card">
+        <div className="brand auth-brand">
+          <img src="/abonnement/icon.svg" alt="" />
+          <span>Subly</span>
+        </div>
+        <span className="eyebrow">Tes abonnements, partout avec toi</span>
+        <h1>{mode === 'login' ? 'Connexion' : 'Créer mon compte'}</h1>
+        <p className="auth-copy">Tes données sont synchronisées dans Supabase et protégées par ton compte.</p>
+        <form onSubmit={submit}>
+          <div className="field">
+            <label>Adresse e-mail</label>
+            <div className="auth-input"><Mail size={18} /><input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nom@email.com" /></div>
+          </div>
+          <div className="field">
+            <label>Mot de passe</label>
+            <div className="auth-input"><LockKeyhole size={18} /><input type="password" minLength={6} required autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="6 caractères minimum" /></div>
+          </div>
+          {error && <div className="auth-message">{error}</div>}
+          <button className="primary-btn auth-submit" disabled={loading}>
+            {loading ? <RefreshCw size={18} className="spin" /> : mode === 'login' ? <LockKeyhole size={18} /> : <UserPlus size={18} />}
+            {loading ? 'Chargement…' : mode === 'login' ? 'Se connecter' : 'Créer le compte'}
+          </button>
+        </form>
+        <button className="auth-switch" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}>
+          {mode === 'login' ? 'Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(readSubscriptions)
   const [settings, setSettings] = useState<Settings>(readSettings)
+  const [session, setSession] = useState<Session | null>(null)
+  const [authReady, setAuthReady] = useState(false)
+  const [remoteReady, setRemoteReady] = useState(false)
+  const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'error'>('idle')
   const [view, setView] = useState<View>('home')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Subscription | null>(null)
@@ -414,6 +504,67 @@ function App() {
   const [filter, setFilter] = useState<Filter>('all')
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
+
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setAuthReady(true)
+    })
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession)
+      setAuthReady(true)
+      if (!nextSession) setRemoteReady(false)
+    })
+    return () => listener.subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    if (!session) return
+    let cancelled = false
+
+    const syncFromSupabase = async () => {
+      setSyncState('syncing')
+      try {
+        const [remoteItems, remoteSettings] = await Promise.all([
+          loadSubscriptions(),
+          loadUserSettings(),
+        ])
+        if (cancelled) return
+
+        const cachedItems = readSubscriptions()
+        let source = remoteItems
+        if (remoteItems.length === 0 && cachedItems.length > 0) {
+          source = cachedItems
+          await upsertSubscriptions(cachedItems, session.user.id)
+        }
+
+        const normalized = source.map(rollAutoRenewalForward)
+        setSubscriptions(normalized)
+
+        const changedRenewals = normalized.filter((item, index) => item.renewalDate !== source[index]?.renewalDate)
+        if (changedRenewals.length) await upsertSubscriptions(changedRenewals, session.user.id)
+
+        if (remoteSettings) {
+          setSettings((current) => ({ ...current, ...remoteSettings }))
+        } else {
+          await saveUserSettings(readSettings(), session.user.id)
+        }
+
+        setRemoteReady(true)
+        setSyncState('idle')
+      } catch (error) {
+        console.error(error)
+        if (!cancelled) {
+          setRemoteReady(true)
+          setSyncState('error')
+        }
+      }
+    }
+
+    syncFromSupabase()
+    return () => { cancelled = true }
+  }, [session?.user.id])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions))
@@ -424,6 +575,21 @@ function App() {
     document.documentElement.dataset.theme = settings.theme
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', settings.theme === 'dark' ? '#0b1020' : '#f5f7fb')
   }, [settings])
+
+  useEffect(() => {
+    if (!session || !remoteReady) return
+    const timer = window.setTimeout(async () => {
+      try {
+        setSyncState('syncing')
+        await saveUserSettings(settings, session.user.id)
+        setSyncState('idle')
+      } catch (error) {
+        console.error(error)
+        setSyncState('error')
+      }
+    }, 450)
+    return () => window.clearTimeout(timer)
+  }, [settings, session?.user.id, remoteReady])
 
   useEffect(() => {
     const handleInstall = (event: Event) => {
@@ -491,19 +657,41 @@ function App() {
     return [...map.entries()].sort((a, b) => b[1] - a[1])
   }, [subscriptions])
 
-  const saveSubscription = (draft: Draft) => {
-    if (editing) {
-      setSubscriptions((items) => items.map((item) => item.id === editing.id ? { ...item, ...draft } : item))
-    } else {
-      setSubscriptions((items) => [...items, { ...draft, id: uid(), createdAt: new Date().toISOString() }])
-    }
+  const saveSubscription = async (draft: Draft) => {
+    const item: Subscription = editing
+      ? { ...editing, ...draft }
+      : { ...draft, id: uid(), createdAt: new Date().toISOString() }
+
+    setSubscriptions((items) => editing
+      ? items.map((current) => current.id === editing.id ? item : current)
+      : [...items, item],
+    )
     setEditing(null)
     setModalOpen(false)
+
+    if (session) {
+      try {
+        setSyncState('syncing')
+        await upsertSubscription(item, session.user.id)
+        setSyncState('idle')
+      } catch (error) {
+        console.error(error)
+        setSyncState('error')
+      }
+    }
   }
 
-  const deleteSubscription = (item: Subscription) => {
+  const deleteSubscription = async (item: Subscription) => {
     if (window.confirm(`Supprimer l’abonnement ${item.name} ?`)) {
       setSubscriptions((items) => items.filter((sub) => sub.id !== item.id))
+      try {
+        setSyncState('syncing')
+        await removeSubscription(item.id)
+        setSyncState('idle')
+      } catch (error) {
+        console.error(error)
+        setSyncState('error')
+      }
     }
   }
 
@@ -542,11 +730,31 @@ function App() {
       const parsed = JSON.parse(await file.text())
       if (!Array.isArray(parsed.subscriptions)) throw new Error('Invalid format')
       setSubscriptions(parsed.subscriptions)
+      if (session) await upsertSubscriptions(parsed.subscriptions, session.user.id)
       if (parsed.settings) setSettings({ ...defaultSettings, ...parsed.settings })
     } catch {
       window.alert('Ce fichier ne semble pas être une sauvegarde Subly valide.')
     }
   }
+
+  const clearAll = async () => {
+    if (!window.confirm('Effacer tous les abonnements ?')) return
+    setSubscriptions([])
+    try {
+      setSyncState('syncing')
+      await removeAllSubscriptions()
+      setSyncState('idle')
+    } catch (error) {
+      console.error(error)
+      setSyncState('error')
+    }
+  }
+
+  if (!authReady) {
+    return <div className="auth-loading"><RefreshCw size={28} className="spin" /><span>Ouverture de Subly…</span></div>
+  }
+
+  if (!session) return <AuthScreen />
 
   const budgetPercent = settings.monthlyBudget > 0 ? Math.min((monthly / settings.monthlyBudget) * 100, 100) : 0
   const budgetDiff = settings.monthlyBudget - monthly
@@ -571,7 +779,7 @@ function App() {
           <div className="mini-progress"><i style={{ width: `${budgetPercent}%` }} /></div>
           <small>{Math.round(budgetPercent)} % du budget</small>
         </div>
-        <div className="sidebar-footer"><span>Données privées</span><small>Stockées sur cet appareil</small></div>
+        <div className="sidebar-footer"><span>Données privées</span><small>Synchronisées avec Supabase</small></div>
       </aside>
 
       <main className="main-content">
@@ -586,6 +794,7 @@ function App() {
             </h1>
           </div>
           <div className="top-actions">
+            <span className={`sync-pill ${syncState}`}>{syncState === 'syncing' ? <RefreshCw size={14} className="spin" /> : <Cloud size={14} />}{syncState === 'syncing' ? 'Synchro…' : syncState === 'error' ? 'Hors ligne' : 'Synchronisé'}</span>
             {installPrompt && <button className="secondary-btn install-btn" onClick={installApp}><Download size={17} /> Installer</button>}
             <button className="icon-btn theme-btn" onClick={() => setSettings((current) => ({ ...current, theme: current.theme === 'dark' ? 'light' : 'dark' }))} aria-label="Changer de thème">
               {settings.theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
@@ -766,10 +975,15 @@ function App() {
                 <input ref={importRef} hidden type="file" accept="application/json" onChange={(e) => importData(e.target.files?.[0])} />
               </div>
             </div>
+            <div className="settings-card panel">
+              <div className="settings-icon"><Cloud size={21} /></div>
+              <div className="settings-copy"><h3>Compte & synchronisation</h3><p>{session.user.email} · données sauvegardées dans Supabase.</p></div>
+              <button className="secondary-btn" onClick={() => supabase.auth.signOut()}><LogOut size={17} /> Déconnexion</button>
+            </div>
             <div className="settings-card panel danger-zone">
               <div className="settings-icon"><Trash2 size={21} /></div>
-              <div className="settings-copy"><h3>Effacer les données</h3><p>Supprime définitivement les abonnements stockés sur cet appareil.</p></div>
-              <button className="secondary-btn danger-btn" onClick={() => { if (window.confirm('Effacer tous les abonnements ?')) setSubscriptions([]) }}><Trash2 size={17} /> Effacer</button>
+              <div className="settings-copy"><h3>Effacer les données</h3><p>Supprime définitivement tes abonnements de cet appareil et de Supabase.</p></div>
+              <button className="secondary-btn danger-btn" onClick={clearAll}><Trash2 size={17} /> Effacer</button>
             </div>
           </section>
         )}
