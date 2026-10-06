@@ -31,7 +31,7 @@ import {
   WalletCards,
   X,
 } from 'lucide-react'
-import { categories, customLogo, providers } from './data/providers'
+import { customLogo } from './data/providers'
 import { supabase } from './lib/supabase'
 import {
   loadSubscriptions,
@@ -42,6 +42,12 @@ import {
   upsertSubscription,
   upsertSubscriptions,
 } from './lib/subscriptionsDb'
+import {
+  deleteProvider as deleteProviderFromDb,
+  ensureProviders,
+  loadCategories,
+  saveProvider as saveProviderToDb,
+} from './lib/providersDb'
 import type {
   BillingCycle,
   Category,
@@ -164,10 +170,14 @@ const emptyDraft = (): Draft => ({
 
 function SubscriptionModal({
   initial,
+  providers,
+  categories,
   onClose,
   onSave,
 }: {
   initial?: Subscription | null
+  providers: Provider[]
+  categories: Category[]
   onClose: () => void
   onSave: (draft: Draft) => void
 }) {
@@ -476,6 +486,162 @@ function SubscriptionCard({
 }
 
 
+
+function ProviderManager({
+  providers,
+  categories,
+  onSave,
+  onDelete,
+}: {
+  providers: Provider[]
+  categories: Category[]
+  onSave: (provider: Provider) => Promise<void>
+  onDelete: (provider: Provider) => Promise<void>
+}) {
+  const [query, setQuery] = useState('')
+  const [editing, setEditing] = useState<Provider | null>(null)
+  const [draft, setDraft] = useState<Provider | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return providers.filter((provider) =>
+      !q || `${provider.name} ${provider.category}`.toLowerCase().includes(q),
+    )
+  }, [providers, query])
+
+  const openNew = () => {
+    const category = categories[0] || ('Autre' as Category)
+    setEditing(null)
+    setDraft({
+      id: `custom-${uid()}`,
+      name: '',
+      category,
+      logo: '',
+      website: '',
+      color: '#111827',
+    })
+  }
+
+  const openEdit = (provider: Provider) => {
+    setEditing(provider)
+    setDraft({ ...provider })
+  }
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!draft?.name.trim()) return
+    setSaving(true)
+    try {
+      const logo = draft.logo.trim() || customLogo(draft.website)
+      await onSave({ ...draft, name: draft.name.trim(), logo })
+      setDraft(null)
+      setEditing(null)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="providers-panel panel">
+      <div className="panel-header provider-manager-header">
+        <div>
+          <span className="eyebrow">Catalogue Supabase</span>
+          <h2>Fournisseurs</h2>
+          <p>Ajoute, modifie ou supprime les fournisseurs et leurs logos.</p>
+        </div>
+        <button className="primary-btn" onClick={openNew}><Plus size={17} /> Ajouter</button>
+      </div>
+
+      <div className="search-input wide provider-search">
+        <Search size={18} />
+        <input
+          placeholder="Rechercher un fournisseur…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      <div className="provider-admin-list">
+        {filtered.map((provider) => (
+          <div className="provider-admin-row" key={provider.id}>
+            <ProviderLogo name={provider.name} logo={provider.logo} size="sm" />
+            <div className="provider-admin-copy">
+              <strong>{provider.name}</strong>
+              <span>{provider.category}{provider.website ? ` · ${provider.website.replace(/^https?:\/\//, '').split('/')[0]}` : ''}</span>
+            </div>
+            <button className="icon-btn tiny" onClick={() => openEdit(provider)} aria-label={`Modifier ${provider.name}`}>
+              <Edit3 size={16} />
+            </button>
+            <button
+              className="icon-btn tiny danger"
+              onClick={() => onDelete(provider)}
+              aria-label={`Supprimer ${provider.name}`}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ))}
+        {filtered.length === 0 && <p className="muted provider-empty">Aucun fournisseur trouvé.</p>}
+      </div>
+
+      {draft && (
+        <div className="provider-editor-backdrop" role="presentation" onMouseDown={() => setDraft(null)}>
+          <form className="provider-editor modal" onSubmit={submit} onMouseDown={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <span className="eyebrow">{editing ? 'Modification' : 'Nouveau fournisseur'}</span>
+                <h2>{editing ? editing.name : 'Ajouter un fournisseur'}</h2>
+              </div>
+              <button type="button" className="icon-btn" onClick={() => setDraft(null)}><X size={20} /></button>
+            </div>
+
+            <div className="provider-preview-card">
+              <ProviderLogo name={draft.name || 'Nouveau'} logo={draft.logo || customLogo(draft.website)} size="lg" />
+              <div>
+                <strong>{draft.name || 'Nom du fournisseur'}</strong>
+                <span>{draft.category}</span>
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Nom</label>
+              <input required value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ex. RED by SFR Mobile" />
+            </div>
+            <div className="field">
+              <label>Catégorie</label>
+              <select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value as Category })}>
+                {categories.map((category) => <option value={category} key={category}>{category}</option>)}
+              </select>
+            </div>
+            <div className="field">
+              <label>Site web <span>optionnel</span></label>
+              <input type="url" value={draft.website} onChange={(e) => setDraft({ ...draft, website: e.target.value })} placeholder="https://…" />
+            </div>
+            <div className="field">
+              <label>URL du logo <span>optionnel</span></label>
+              <input
+                type="url"
+                value={draft.logo}
+                onChange={(e) => setDraft({ ...draft, logo: e.target.value })}
+                placeholder="https://…/logo.png"
+              />
+              <small className="field-help">Si vide, Subly essaie d’utiliser automatiquement l’icône du site web.</small>
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="secondary-btn" onClick={() => setDraft(null)}>Annuler</button>
+              <button className="primary-btn" disabled={saving}>
+                {saving ? <RefreshCw size={17} className="spin" /> : <Check size={17} />}
+                {saving ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const APP_URL = 'https://brahmiamine.github.io/abonnement/'
 
 function AuthScreen() {
@@ -695,6 +861,8 @@ function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) {
 function App() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(readSubscriptions)
   const [settings, setSettings] = useState<Settings>(readSettings)
+  const [providerCatalog, setProviderCatalog] = useState<Provider[]>([])
+  const [categoryCatalog, setCategoryCatalog] = useState<Category[]>([])
   const [session, setSession] = useState<Session | null>(null)
   const [authReady, setAuthReady] = useState(false)
   const [passwordRecovery, setPasswordRecovery] = useState(false)
@@ -736,11 +904,16 @@ function App() {
     const syncFromSupabase = async () => {
       setSyncState('syncing')
       try {
-        const [remoteItems, remoteSettings] = await Promise.all([
+        const [remoteItems, remoteSettings, remoteProviders, remoteCategories] = await Promise.all([
           loadSubscriptions(),
           loadUserSettings(),
+          ensureProviders(session.user.id),
+          loadCategories(),
         ])
         if (cancelled) return
+
+        setProviderCatalog(remoteProviders)
+        setCategoryCatalog(remoteCategories)
 
         const cachedItems = readSubscriptions()
         let source = remoteItems
@@ -868,9 +1041,26 @@ function App() {
   }, [subscriptions])
 
   const saveSubscription = async (draft: Draft) => {
+    if (!session) return
+    let normalizedDraft = draft
+
+    if (!draft.providerId) {
+      const provider: Provider = {
+        id: `custom-${uid()}`,
+        name: draft.name,
+        category: draft.category,
+        logo: draft.logo || customLogo(draft.website),
+        website: draft.website || '',
+        color: '#111827',
+      }
+      await saveProviderToDb(provider, session.user.id)
+      setProviderCatalog((items) => [...items, provider].sort((a, b) => a.name.localeCompare(b.name, 'fr')))
+      normalizedDraft = { ...draft, providerId: provider.id, logo: provider.logo }
+    }
+
     const item: Subscription = editing
-      ? { ...editing, ...draft }
-      : { ...draft, id: uid(), createdAt: new Date().toISOString() }
+      ? { ...editing, ...normalizedDraft }
+      : { ...normalizedDraft, id: uid(), createdAt: new Date().toISOString() }
 
     setSubscriptions((items) => editing
       ? items.map((current) => current.id === editing.id ? item : current)
@@ -879,15 +1069,13 @@ function App() {
     setEditing(null)
     setModalOpen(false)
 
-    if (session) {
-      try {
-        setSyncState('syncing')
-        await upsertSubscription(item, session.user.id)
-        setSyncState('idle')
-      } catch (error) {
-        console.error(error)
-        setSyncState('error')
-      }
+    try {
+      setSyncState('syncing')
+      await upsertSubscription(item, session.user.id)
+      setSyncState('idle')
+    } catch (error) {
+      console.error(error)
+      setSyncState('error')
     }
   }
 
@@ -944,6 +1132,62 @@ function App() {
       if (parsed.settings) setSettings({ ...defaultSettings, ...parsed.settings })
     } catch {
       window.alert('Ce fichier ne semble pas être une sauvegarde Subly valide.')
+    }
+  }
+
+  const saveProvider = async (provider: Provider) => {
+    if (!session) return
+    setSyncState('syncing')
+    try {
+      await saveProviderToDb(provider, session.user.id)
+      setProviderCatalog((items) => {
+        const exists = items.some((item) => item.id === provider.id)
+        const next = exists
+          ? items.map((item) => item.id === provider.id ? provider : item)
+          : [...items, provider]
+        return next.sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+      })
+
+      const affected = subscriptions
+        .filter((item) => item.providerId === provider.id)
+        .map((item) => ({
+          ...item,
+          name: provider.name,
+          logo: provider.logo,
+          website: provider.website,
+          category: provider.category,
+        }))
+
+      if (affected.length) {
+        setSubscriptions((items) => items.map((item) => {
+          const updated = affected.find((candidate) => candidate.id === item.id)
+          return updated || item
+        }))
+        await upsertSubscriptions(affected, session.user.id)
+      }
+      setSyncState('idle')
+    } catch (error) {
+      console.error(error)
+      setSyncState('error')
+      throw error
+    }
+  }
+
+  const deleteProvider = async (provider: Provider) => {
+    const used = subscriptions.some((item) => item.providerId === provider.id)
+    const message = used
+      ? `${provider.name} est utilisé par au moins un abonnement. Le fournisseur sera retiré du catalogue, mais les abonnements existants seront conservés. Continuer ?`
+      : `Supprimer le fournisseur ${provider.name} ?`
+    if (!window.confirm(message)) return
+
+    setSyncState('syncing')
+    try {
+      await deleteProviderFromDb(provider.id)
+      setProviderCatalog((items) => items.filter((item) => item.id !== provider.id))
+      setSyncState('idle')
+    } catch (error) {
+      console.error(error)
+      setSyncState('error')
     }
   }
 
@@ -1160,6 +1404,12 @@ function App() {
 
         {view === 'settings' && (
           <section className="settings-view">
+            <ProviderManager
+              providers={providerCatalog}
+              categories={categoryCatalog}
+              onSave={saveProvider}
+              onDelete={deleteProvider}
+            />
             <div className="settings-card panel">
               <div className="settings-icon"><Bell size={21} /></div>
               <div className="settings-copy"><h3>Rappels de renouvellement</h3><p>Affiche une notification quand une échéance approche, selon les délais choisis pour chaque abonnement.</p></div>
@@ -1210,7 +1460,15 @@ function App() {
         <button className={view === 'settings' ? 'active' : ''} onClick={() => setView('settings')}><SettingsIcon size={21} /><span>Réglages</span></button>
       </nav>
 
-      {modalOpen && <SubscriptionModal initial={editing} onClose={() => { setModalOpen(false); setEditing(null) }} onSave={saveSubscription} />}
+      {modalOpen && (
+        <SubscriptionModal
+          initial={editing}
+          providers={providerCatalog}
+          categories={categoryCatalog}
+          onClose={() => { setModalOpen(false); setEditing(null) }}
+          onSave={saveSubscription}
+        />
+      )}
     </div>
   )
 }
