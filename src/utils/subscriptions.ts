@@ -41,3 +41,24 @@ export const subscriptionMonthlyTotal = (items: Subscription[]) =>
   items
     .filter((item) => item.status !== 'paused')
     .reduce((sum, item) => sum + toMonthly(item.price, item.cycle), 0)
+
+
+export const advanceRenewalDate = (date: string, cycle: BillingCycle) => {
+  const value = new Date(`${date}T12:00:00`)
+  if (cycle === 'weekly') value.setDate(value.getDate() + 7)
+  if (cycle === 'monthly') value.setMonth(value.getMonth() + 1)
+  if (cycle === 'quarterly') value.setMonth(value.getMonth() + 3)
+  if (cycle === 'yearly') value.setFullYear(value.getFullYear() + 1)
+  return value.toISOString().slice(0, 10)
+}
+
+export const rollAutoRenewalForward = (item: Subscription) => {
+  if (!item.autoRenew || item.status === 'paused') return item
+  let renewalDate = item.renewalDate
+  let guard = 0
+  while (daysUntil(renewalDate) < 0 && guard < 120) {
+    renewalDate = advanceRenewalDate(renewalDate, item.cycle)
+    guard += 1
+  }
+  return renewalDate === item.renewalDate ? item : { ...item, renewalDate }
+}
