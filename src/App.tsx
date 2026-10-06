@@ -51,6 +51,7 @@ import type {
   SubscriptionStatus,
 } from './types'
 import {
+  advanceRenewalDate,
   cycleLabel,
   daysUntil,
   formatDate,
@@ -81,12 +82,6 @@ const defaultSettings: Settings = {
 }
 
 const isoToday = () => new Date().toISOString().slice(0, 10)
-
-const addDays = (days: number) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date.toISOString().slice(0, 10)
-}
 
 const uid = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
 
@@ -159,7 +154,7 @@ const emptyDraft = (): Draft => ({
   currency: 'EUR',
   cycle: 'monthly',
   startDate: isoToday(),
-  renewalDate: addDays(30),
+  renewalDate: advanceRenewalDate(isoToday(), 'monthly'),
   expirationDate: '',
   status: 'active',
   autoRenew: true,
@@ -189,7 +184,7 @@ function SubscriptionModal({
           cycle: initial.cycle,
           startDate: initial.startDate,
           renewalDate: initial.renewalDate,
-          expirationDate: initial.expirationDate || '',
+          expirationDate: initial.autoRenew ? '' : (initial.expirationDate || initial.renewalDate),
           status: initial.status,
           autoRenew: initial.autoRenew,
           remindDays: initial.remindDays,
@@ -229,6 +224,24 @@ function SubscriptionModal({
     if (!name) return
     setDraft((current) => ({ ...current, providerId: undefined, name }))
     setShowProviders(false)
+  }
+
+
+  const syncBillingDates = (
+    current: Draft,
+    startDate = current.startDate,
+    cycle = current.cycle,
+    autoRenew = current.autoRenew,
+  ): Draft => {
+    const renewalDate = advanceRenewalDate(startDate, cycle)
+    return {
+      ...current,
+      startDate,
+      cycle,
+      autoRenew,
+      renewalDate,
+      expirationDate: autoRenew ? '' : renewalDate,
+    }
   }
 
   const submit = (event: React.FormEvent) => {
@@ -293,7 +306,13 @@ function SubscriptionModal({
             </div>
             <div className="field">
               <label>Facturation</label>
-              <select value={draft.cycle} onChange={(e) => setDraft({ ...draft, cycle: e.target.value as BillingCycle })}>
+              <select
+                value={draft.cycle}
+                onChange={(e) => {
+                  const cycle = e.target.value as BillingCycle
+                  setDraft((current) => syncBillingDates(current, current.startDate, cycle))
+                }}
+              >
                 <option value="weekly">Chaque semaine</option>
                 <option value="monthly">Chaque mois</option>
                 <option value="quarterly">Chaque trimestre</option>
@@ -305,18 +324,38 @@ function SubscriptionModal({
           <div className="form-grid two">
             <div className="field">
               <label>Date de début</label>
-              <input type="date" value={draft.startDate} onChange={(e) => setDraft({ ...draft, startDate: e.target.value })} />
+              <input
+                type="date"
+                value={draft.startDate}
+                onChange={(e) => setDraft((current) => syncBillingDates(current, e.target.value, current.cycle))}
+              />
             </div>
             <div className="field">
               <label>Prochain renouvellement</label>
-              <input type="date" required value={draft.renewalDate} onChange={(e) => setDraft({ ...draft, renewalDate: e.target.value })} />
+              <input
+                type="date"
+                required
+                value={draft.renewalDate}
+                onChange={(e) => {
+                  const renewalDate = e.target.value
+                  setDraft((current) => ({
+                    ...current,
+                    renewalDate,
+                    expirationDate: current.autoRenew ? '' : renewalDate,
+                  }))
+                }}
+              />
             </div>
           </div>
 
           <div className="form-grid two">
             <div className="field">
-              <label>Fin / expiration <span>optionnel</span></label>
-              <input type="date" value={draft.expirationDate || ''} onChange={(e) => setDraft({ ...draft, expirationDate: e.target.value })} />
+              <label>Fin / expiration <span>calculée automatiquement</span></label>
+              {draft.autoRenew ? (
+                <div className="computed-date">Sans date de fin · renouvellement automatique</div>
+              ) : (
+                <input type="date" value={draft.expirationDate || draft.renewalDate} readOnly />
+              )}
             </div>
             <div className="field">
               <label>Catégorie</label>
@@ -365,7 +404,18 @@ function SubscriptionModal({
 
           <label className="switch-row">
             <span><strong>Renouvellement automatique</strong><small>Pris en compte dans les prévisions du budget</small></span>
-            <input type="checkbox" checked={draft.autoRenew} onChange={(e) => setDraft({ ...draft, autoRenew: e.target.checked })} />
+            <input
+              type="checkbox"
+              checked={draft.autoRenew}
+              onChange={(e) => {
+                const autoRenew = e.target.checked
+                setDraft((current) => ({
+                  ...current,
+                  autoRenew,
+                  expirationDate: autoRenew ? '' : current.renewalDate,
+                }))
+              }}
+            />
             <i />
           </label>
 
