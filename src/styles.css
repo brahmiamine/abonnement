@@ -426,3 +426,127 @@ input, select, textarea { color: var(--text); }
   color: var(--muted);
   font-size: 11px;
 }
+
+
+/* Provider catalog management */
+.providers-panel {
+  padding: 20px;
+}
+.provider-manager-header {
+  align-items: flex-start;
+  gap: 16px;
+}
+.provider-manager-header p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.provider-search {
+  margin: 16px 0 12px;
+}
+.provider-admin-list {
+  display: grid;
+  gap: 7px;
+  max-height: 440px;
+  overflow: auto;
+  padding-right: 3px;
+}
+.provider-admin-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel-2);
+}
+.provider-admin-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.provider-admin-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.provider-admin-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 10px;
+}
+.provider-empty {
+  padding: 18px 4px;
+  text-align: center;
+}
+.provider-editor-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 6, 15, .72);
+  backdrop-filter: blur(8px);
+}
+.provider-editor {
+  width: min(520px, 100%);
+}
+.provider-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 3px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel-2);
+}
+.provider-preview-card > div {
+  display: grid;
+  gap: 3px;
+}
+.provider-preview-card strong {
+  font-size: 13px;
+}
+.provider-preview-card span,
+.field-help {
+  color: var(--muted);
+  font-size: 10px;
+}
+.field-help {
+  display: block;
+  margin-top: 6px;
+  line-height: 1.45;
+}
+
+@media (max-width: 780px) {
+  .providers-panel {
+    padding: 15px;
+  }
+  .provider-manager-header {
+    align-items: center;
+  }
+  .provider-manager-header .primary-btn {
+    min-width: auto;
+  }
+  .provider-admin-row {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+  }
+  .provider-editor-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+  .provider-editor {
+    width: 100%;
+    max-height: 88vh;
+    overflow: auto;
+    border-radius: 22px 22px 0 0;
+  }
+}
