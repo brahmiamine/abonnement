@@ -1,6 +1,6 @@
 const CACHE = 'subly-shell-v1'
 const BASE = '/abonnement/'
-const CORE = [BASE, BASE + 'manifest.webmanifest', BASE + 'icon.svg']
+const CORE = [BASE, BASE + 'manifest.webmanifest', BASE + 'icon.svg', BASE + 'icon-192.png', BASE + 'icon-512.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting()))
