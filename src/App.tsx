@@ -9,7 +9,6 @@ import {
   Download,
   Edit3,
   Home,
-  Install,
   Moon,
   MoreHorizontal,
   Plus,
@@ -587,7 +586,7 @@ function App() {
             </h1>
           </div>
           <div className="top-actions">
-            {installPrompt && <button className="secondary-btn install-btn" onClick={installApp}><Install size={17} /> Installer</button>}
+            {installPrompt && <button className="secondary-btn install-btn" onClick={installApp}><Download size={17} /> Installer</button>}
             <button className="icon-btn theme-btn" onClick={() => setSettings((current) => ({ ...current, theme: current.theme === 'dark' ? 'light' : 'dark' }))} aria-label="Changer de thème">
               {settings.theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
             </button>
@@ -753,9 +752,9 @@ function App() {
             </div>
             {installPrompt && (
               <div className="settings-card panel">
-                <div className="settings-icon"><Install size={21} /></div>
+                <div className="settings-icon"><Download size={21} /></div>
                 <div className="settings-copy"><h3>Installer Subly</h3><p>Ajoute l’application à l’écran d’accueil pour l’utiliser comme une vraie application.</p></div>
-                <button className="primary-btn" onClick={installApp}><Install size={17} /> Installer</button>
+                <button className="primary-btn" onClick={installApp}><Download size={17} /> Installer</button>
               </div>
             )}
             <div className="settings-card panel">
