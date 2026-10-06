@@ -75,13 +75,14 @@ export function SubscriptionsView({
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState onAdd={onAdd} />
+        <div className="panel rise"><EmptyState onAdd={onAdd} /></div>
       ) : (
         <div className="subscriptions-grid">
-          {filtered.map((item) => (
+          {filtered.map((item, index) => (
             <SubscriptionCard
               key={item.id}
               item={item}
+              index={index}
               onEdit={() => onEdit(item)}
               onDelete={() => onDelete(item)}
             />

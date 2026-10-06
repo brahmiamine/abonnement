@@ -46,7 +46,8 @@ test('le thème distant est utilisé sur un nouvel appareil', async ({ page }) =
   await mockSupabase(page, { theme: 'light' })
   await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Mes abonnements', level: 1 })).toBeVisible()
-  expect(await themeOf(page)).toBe('light')
+  // Le thème distant arrive avec les données, juste après le squelette de chargement.
+  await expect.poll(() => themeOf(page)).toBe('light')
 })
 
 test('le thème est conservé sur toutes les pages', async ({ page }) => {

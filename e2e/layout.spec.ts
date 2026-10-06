@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { mockSupabase } from './support/mockSupabase'
-import { openAddModal } from './support/app'
+import { openAddModal, settle } from './support/app'
 import { SCREENS, findOverflowing, pageScrollsHorizontally } from './support/screens'
 
 test.beforeEach(async ({ page }) => {
@@ -11,6 +11,7 @@ for (const screen of SCREENS) {
   test(`« ${screen.hash} » : aucun scroll horizontal ni débordement`, async ({ page }, info) => {
     await page.goto(`./#/${screen.hash}`)
     await expect(page.getByRole('heading', { name: screen.heading, level: 1 })).toBeVisible()
+    await settle(page)
     expect(await pageScrollsHorizontally(page)).toBe(false)
     expect(await findOverflowing(page)).toEqual([])
     await page.screenshot({ path: `e2e/screenshots/${info.project.name}-${screen.hash}.png`, fullPage: true })
@@ -44,16 +45,22 @@ test.describe('barre de navigation mobile', () => {
   })
 
   for (const screen of SCREENS) {
-    test(`reste collée en bas sur « ${screen.hash} » même après défilement`, async ({ page }) => {
+    test(`reste fixée en bas sur « ${screen.hash} » même après défilement`, async ({ page }) => {
       await page.goto(`./#/${screen.hash}`)
       await expect(page.getByRole('heading', { name: screen.heading, level: 1 })).toBeVisible()
+      await settle(page)
       const nav = page.locator('.mobile-nav')
+      // Barre flottante : quelques pixels de marge sur les côtés et en bas, jamais hors de l'écran.
       const check = async () => {
         const box = (await nav.boundingBox())!
         const { width, height } = page.viewportSize()!
-        expect(Math.round(box.y + box.height)).toBe(height)
-        expect(Math.round(box.x)).toBe(0)
-        expect(Math.round(box.width)).toBe(width)
+        const bottomGap = height - (box.y + box.height)
+        expect(bottomGap).toBeGreaterThanOrEqual(0)
+        expect(bottomGap).toBeLessThanOrEqual(16)
+        expect(box.x).toBeGreaterThanOrEqual(0)
+        expect(box.x).toBeLessThanOrEqual(12)
+        expect(box.x + box.width).toBeLessThanOrEqual(width)
+        expect(box.width).toBeGreaterThanOrEqual(width - 24)
       }
       await check()
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
@@ -64,6 +71,7 @@ test.describe('barre de navigation mobile', () => {
   test('le contenu n’est jamais masqué par la barre du bas', async ({ page }) => {
     await page.goto('./#/settings')
     await expect(page.getByRole('heading', { name: 'Réglages', level: 1 })).toBeVisible()
+    await settle(page)
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
     const nav = (await page.locator('.mobile-nav').boundingBox())!
     const last = (await page.locator('.settings-card').last().boundingBox())!

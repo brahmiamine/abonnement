@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
 import type { Settings } from '../types'
+import { cascade } from '../utils/motion'
 
 export function SettingsView({
   settings,
@@ -46,7 +47,7 @@ export function SettingsView({
 
   return (
     <section className="settings-view">
-      <div className="settings-card panel">
+      <div className="settings-card panel rise" style={cascade(0, 60)}>
         <div className="settings-icon"><Store size={21} /></div>
         <div className="settings-copy">
           <h3>Fournisseurs</h3>
@@ -57,7 +58,7 @@ export function SettingsView({
         </button>
       </div>
 
-      <div className="settings-card panel">
+      <div className="settings-card panel rise" style={cascade(1, 60)}>
         <div className="settings-icon"><Bell size={21} /></div>
         <div className="settings-copy">
           <h3>Rappels de renouvellement</h3>
@@ -73,9 +74,11 @@ export function SettingsView({
         </button>
       </div>
 
-      <div className="settings-card panel">
+      <div className="settings-card panel rise" style={cascade(2, 60)}>
         <div className="settings-icon">
-          {settings.theme === 'dark' ? <Moon size={21} /> : <Sun size={21} />}
+          <span className={`theme-icon ${settings.theme}`}>
+            {settings.theme === 'dark' ? <Moon size={21} /> : <Sun size={21} />}
+          </span>
         </div>
         <div className="settings-copy">
           <h3>Apparence</h3>
@@ -87,7 +90,7 @@ export function SettingsView({
       </div>
 
       {installAvailable && (
-        <div className="settings-card panel">
+        <div className="settings-card panel rise" style={cascade(3, 60)}>
           <div className="settings-icon"><Download size={21} /></div>
           <div className="settings-copy">
             <h3>Installer Subly</h3>
@@ -97,7 +100,7 @@ export function SettingsView({
         </div>
       )}
 
-      <div className="settings-card panel">
+      <div className="settings-card panel rise" style={cascade(4, 60)}>
         <div className="settings-icon"><Download size={21} /></div>
         <div className="settings-copy">
           <h3>Export / import</h3>
@@ -116,7 +119,7 @@ export function SettingsView({
         </div>
       </div>
 
-      <div className="settings-card panel">
+      <div className="settings-card panel rise" style={cascade(5, 60)}>
         <div className="settings-icon"><Cloud size={21} /></div>
         <div className="settings-copy">
           <h3>Compte & synchronisation</h3>
@@ -127,7 +130,7 @@ export function SettingsView({
         </button>
       </div>
 
-      <div className="settings-card panel danger-zone">
+      <div className="settings-card panel danger-zone rise" style={cascade(6, 60)}>
         <div className="settings-icon"><Trash2 size={21} /></div>
         <div className="settings-copy">
           <h3>Effacer les abonnements</h3>

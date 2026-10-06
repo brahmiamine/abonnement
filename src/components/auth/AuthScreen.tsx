@@ -48,114 +48,118 @@ export function AuthScreen() {
 
   return (
     <div className="auth-screen">
+      <div className="auth-blob auth-blob--violet" aria-hidden="true" />
+      <div className="auth-blob auth-blob--green" aria-hidden="true" />
       <div className="auth-card">
         <div className="brand auth-brand">
           <img src="/abonnement/icon.svg" alt="" />
           <span>Subly</span>
         </div>
 
-        <span className="eyebrow">Tes abonnements, partout avec toi</span>
-        <h1>{mode === 'login' ? 'Connexion' : mode === 'signup' ? 'Créer mon compte' : 'Mot de passe oublié'}</h1>
-        <p className="auth-copy">
-          {mode === 'forgot'
-            ? 'Indique ton adresse e-mail. Nous t’enverrons un lien sécurisé pour définir un nouveau mot de passe.'
-            : 'Tes données sont synchronisées dans Supabase et protégées par ton compte.'}
-        </p>
+        <div className="auth-body" key={mode}>
+          <span className="eyebrow">Tes abonnements, partout avec toi</span>
+          <h1>{mode === 'login' ? 'Connexion' : mode === 'signup' ? 'Créer mon compte' : 'Mot de passe oublié'}</h1>
+          <p className="auth-copy">
+            {mode === 'forgot'
+              ? 'Indique ton adresse e-mail. Nous t’enverrons un lien sécurisé pour définir un nouveau mot de passe.'
+              : 'Tes données sont synchronisées dans Supabase et protégées par ton compte.'}
+          </p>
 
-        <form onSubmit={submit}>
-          <div className="field">
-            <label>Adresse e-mail</label>
-            <div className="auth-input">
-              <Mail size={18} />
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="nom@email.com"
-              />
-            </div>
-          </div>
-
-          {mode !== 'forgot' && (
+          <form onSubmit={submit}>
             <div className="field">
-              <div className="field-label-row">
-                <label>Mot de passe</label>
-                {mode === 'login' && (
+              <label>Adresse e-mail</label>
+              <div className="auth-input">
+                <Mail size={18} />
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="nom@email.com"
+                />
+              </div>
+            </div>
+
+            {mode !== 'forgot' && (
+              <div className="field">
+                <div className="field-label-row">
+                  <label>Mot de passe</label>
+                  {mode === 'login' && (
+                    <button
+                      type="button"
+                      className="forgot-link"
+                      onClick={() => {
+                        setMode('forgot')
+                        setPassword('')
+                        setShowPassword(false)
+                        setMessage('')
+                      }}
+                    >
+                      Mot de passe oublié ?
+                    </button>
+                  )}
+                </div>
+
+                <div className="auth-input password-input">
+                  <LockKeyhole size={18} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    minLength={passwordMinLength}
+                    required
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder={mode === 'signup' ? '8 caractères minimum' : 'Mot de passe'}
+                  />
                   <button
                     type="button"
-                    className="forgot-link"
-                    onClick={() => {
-                      setMode('forgot')
-                      setPassword('')
-                      setShowPassword(false)
-                      setMessage('')
-                    }}
+                    className="password-toggle"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                   >
-                    Mot de passe oublié ?
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
-                )}
+                </div>
               </div>
+            )}
 
-              <div className="auth-input password-input">
-                <LockKeyhole size={18} />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  minLength={passwordMinLength}
-                  required
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder={mode === 'signup' ? '8 caractères minimum' : 'Mot de passe'}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword((visible) => !visible)}
-                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-          )}
+            {message && <div className="auth-message">{message}</div>}
 
-          {message && <div className="auth-message">{message}</div>}
+            <button className="primary-btn auth-submit" disabled={loading}>
+              {loading
+                ? <RefreshCw size={18} className="spin" />
+                : mode === 'login'
+                  ? <LockKeyhole size={18} />
+                  : mode === 'signup'
+                    ? <UserPlus size={18} />
+                    : <Mail size={18} />}
+              {loading
+                ? 'Chargement…'
+                : mode === 'login'
+                  ? 'Se connecter'
+                  : mode === 'signup'
+                    ? 'Créer le compte'
+                    : 'Envoyer le lien'}
+            </button>
+          </form>
 
-          <button className="primary-btn auth-submit" disabled={loading}>
-            {loading
-              ? <RefreshCw size={18} className="spin" />
-              : mode === 'login'
-                ? <LockKeyhole size={18} />
-                : mode === 'signup'
-                  ? <UserPlus size={18} />
-                  : <Mail size={18} />}
-            {loading
-              ? 'Chargement…'
-              : mode === 'login'
-                ? 'Se connecter'
-                : mode === 'signup'
-                  ? 'Créer le compte'
-                  : 'Envoyer le lien'}
+          <button
+            className="auth-switch"
+            onClick={() => {
+              setMode(mode === 'login' ? 'signup' : 'login')
+              setPassword('')
+              setShowPassword(false)
+              setMessage('')
+            }}
+          >
+            {mode === 'login'
+              ? 'Pas encore de compte ? Créer un compte'
+              : mode === 'signup'
+                ? 'Déjà un compte ? Se connecter'
+                : '← Retour à la connexion'}
           </button>
-        </form>
-
-        <button
-          className="auth-switch"
-          onClick={() => {
-            setMode(mode === 'login' ? 'signup' : 'login')
-            setPassword('')
-            setShowPassword(false)
-            setMessage('')
-          }}
-        >
-          {mode === 'login'
-            ? 'Pas encore de compte ? Créer un compte'
-            : mode === 'signup'
-              ? 'Déjà un compte ? Se connecter'
-              : '← Retour à la connexion'}
-        </button>
+        </div>
       </div>
     </div>
   )

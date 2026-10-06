@@ -2,14 +2,17 @@ import { memo } from 'react'
 import { Edit3, Trash2 } from 'lucide-react'
 import { cycleLabel, daysUntil, formatMoney, nextRenewalLabel } from '../../domain/subscriptions'
 import type { Subscription } from '../../types'
+import { cascade } from '../../utils/motion'
 import { ProviderLogo } from '../common/ProviderLogo'
 
 export const SubscriptionCard = memo(function SubscriptionCard({
   item,
+  index = 0,
   onEdit,
   onDelete,
 }: {
   item: Subscription
+  index?: number
   onEdit: () => void
   onDelete: () => void
 }) {
@@ -17,7 +20,7 @@ export const SubscriptionCard = memo(function SubscriptionCard({
   const urgency = days < 0 ? 'overdue' : days <= 3 ? 'urgent' : days <= 14 ? 'soon' : ''
 
   return (
-    <article className="subscription-card">
+    <article className="subscription-card rise" style={cascade(index)}>
       <div className="sub-top">
         <ProviderLogo name={item.name} logo={item.logo} />
         <div className="sub-main">

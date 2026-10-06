@@ -7,6 +7,19 @@ const isMobileLayout = async (page: Page) => {
   return page.locator('.mobile-nav').isVisible()
 }
 
+/** Attend la fin du squelette de chargement et des animations d'entrée (hors boucles infinies). */
+export const settle = async (page: Page) => {
+  await page.locator('.main-content .page').waitFor()
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getTiming().iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => undefined)),
+    ),
+  )
+}
+
 export const navigate = async (page: Page, label: 'Accueil' | 'Abonnements' | 'Dépenses' | 'Réglages') => {
   const mobile = await isMobileLayout(page)
   if (mobile) {

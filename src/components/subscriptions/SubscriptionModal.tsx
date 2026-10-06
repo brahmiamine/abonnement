@@ -3,6 +3,7 @@ import { Check, ChevronRight, Plus, RefreshCw, Search, X } from 'lucide-react'
 import { isoToday } from '../../config'
 import { customLogo } from '../../data/providers'
 import { advanceRenewalDate } from '../../domain/subscriptions'
+import { useExitAnimation } from '../../hooks/useExitAnimation'
 import type {
   BillingCycle,
   Category,
@@ -69,6 +70,7 @@ export function SubscriptionModal({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const [closing, close] = useExitAnimation(onClose)
 
   useEffect(() => inputRef.current?.focus(), [])
 
@@ -127,6 +129,7 @@ export function SubscriptionModal({
     try {
       const logo = draft.logo || customLogo(draft.website)
       await onSave({ ...draft, name: draft.name.trim(), logo })
+      close()
     } catch {
       setError('Impossible d’enregistrer cet abonnement. Réessaie.')
     } finally {
@@ -139,7 +142,7 @@ export function SubscriptionModal({
   )
 
   return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+    <div className={`modal-backdrop ${closing ? 'is-closing' : ''}`} role="presentation" onMouseDown={close}>
       <div
         className="modal"
         role="dialog"
@@ -148,11 +151,12 @@ export function SubscriptionModal({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
+          <span className="sheet-handle" aria-hidden="true" />
           <div>
             <span className="eyebrow">{initial ? 'Modification' : 'Nouvel abonnement'}</span>
             <h2>{initial ? 'Modifier l’abonnement' : 'Ajouter un abonnement'}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Fermer"><X size={20} /></button>
+          <button type="button" className="icon-btn close-btn" onClick={close} aria-label="Fermer"><X size={20} /></button>
         </div>
 
         <form onSubmit={submit} className="subscription-form">
@@ -335,7 +339,7 @@ export function SubscriptionModal({
                       })
                     }
                   >
-                    {active && <Check size={14} />}
+                    {active && <Check size={14} className="pill-check" />}
                     {day === 0 ? 'Jour J' : `${day} j`}
                   </button>
                 )
@@ -376,7 +380,7 @@ export function SubscriptionModal({
           {error && <div className="auth-message">{error}</div>}
 
           <div className="modal-actions">
-            <button type="button" className="secondary-btn" onClick={onClose}>Annuler</button>
+            <button type="button" className="secondary-btn" onClick={close}>Annuler</button>
             <button type="submit" className="primary-btn" disabled={saving}>
               {saving ? <RefreshCw size={18} className="spin" /> : <Check size={18} />}
               {saving ? 'Enregistrement…' : initial ? 'Enregistrer' : 'Ajouter'}

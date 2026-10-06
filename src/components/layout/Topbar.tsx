@@ -28,9 +28,13 @@ export function Topbar({
 }) {
   return (
     <header className="topbar">
-      <div>
+      <div className="topbar-title">
         <p className="eyebrow">Gestionnaire personnel</p>
-        <h1>{titles[view]}</h1>
+        <div className="mobile-brand" aria-hidden="true">
+          <img src="/abonnement/icon.svg" alt="" />
+          <span>Subly</span>
+        </div>
+        <h1 key={view}>{titles[view]}</h1>
       </div>
 
       <div className="top-actions">
@@ -52,7 +56,9 @@ export function Topbar({
         )}
 
         <button className="icon-btn theme-btn" onClick={onToggleTheme} aria-label="Changer de thème">
-          {settings.theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
+          <span className={`theme-icon ${settings.theme}`}>
+            {settings.theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
+          </span>
         </button>
 
         <button className="primary-btn add-btn" onClick={onAdd}>

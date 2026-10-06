@@ -5,6 +5,7 @@ import { ResetPasswordScreen } from './components/auth/ResetPasswordScreen'
 import { MobileNav } from './components/layout/MobileNav'
 import { Sidebar } from './components/layout/Sidebar'
 import { Topbar } from './components/layout/Topbar'
+import { LoadingSkeleton } from './components/common/LoadingSkeleton'
 import { SubscriptionModal } from './components/subscriptions/SubscriptionModal'
 import { createBackup, parseBackup, serializeBackup } from './domain/backup'
 import { expenseSummary, expensesByCategory } from './domain/expenses'
@@ -61,11 +62,8 @@ function App() {
     setModalOpen(true)
   }
 
-  const saveSubscription = async (draft: SubscriptionDraft) => {
-    await data.saveSubscription(draft, editing)
-    setModalOpen(false)
-    setEditing(null)
-  }
+  // La modale se ferme elle-même (avec son animation) une fois l'enregistrement terminé.
+  const saveSubscription = (draft: SubscriptionDraft) => data.saveSubscription(draft, editing)
 
   const deleteSubscription = async (subscription: Subscription) => {
     if (!window.confirm(`Supprimer l’abonnement ${subscription.name} ?`)) return
@@ -153,15 +151,6 @@ function App() {
     return <ResetPasswordScreen onComplete={auth.completePasswordRecovery} />
   }
 
-  if (!data.dataReady) {
-    return (
-      <div className="auth-loading">
-        <RefreshCw size={28} className="spin" />
-        <span>Synchronisation avec Supabase…</span>
-      </div>
-    )
-  }
-
   return (
     <div className="app-shell">
       <Sidebar
@@ -183,55 +172,61 @@ function App() {
           onAdd={openAdd}
         />
 
-        {view === 'home' && (
-          <HomeView
-            summary={summary}
-            upcoming={upcoming}
-            onAdd={openAdd}
-            onEdit={openEdit}
-            onSubscriptions={() => setView('subscriptions')}
-            onExpenses={() => setView('expenses')}
-          />
-        )}
+        {!data.dataReady ? (
+          <LoadingSkeleton />
+        ) : (
+          <div className="page" key={view}>
+            {view === 'home' && (
+              <HomeView
+                summary={summary}
+                upcoming={upcoming}
+                onAdd={openAdd}
+                onEdit={openEdit}
+                onSubscriptions={() => setView('subscriptions')}
+                onExpenses={() => setView('expenses')}
+              />
+            )}
 
-        {view === 'subscriptions' && (
-          <SubscriptionsView
-            subscriptions={data.subscriptions}
-            onAdd={openAdd}
-            onEdit={openEdit}
-            onDelete={(subscription) => void deleteSubscription(subscription)}
-          />
-        )}
+            {view === 'subscriptions' && (
+              <SubscriptionsView
+                subscriptions={data.subscriptions}
+                onAdd={openAdd}
+                onEdit={openEdit}
+                onDelete={(subscription) => void deleteSubscription(subscription)}
+              />
+            )}
 
-        {view === 'expenses' && (
-          <ExpensesView summary={summary} byCategory={byCategory} />
-        )}
+            {view === 'expenses' && (
+              <ExpensesView summary={summary} byCategory={byCategory} />
+            )}
 
-        {view === 'settings' && (
-          <SettingsView
-            settings={data.settings}
-            email={auth.session.user.email}
-            providerCount={data.providers.length}
-            installAvailable={pwa.installAvailable}
-            onEnableNotifications={requestNotifications}
-            onToggleTheme={toggleTheme}
-            onInstall={() => void pwa.install()}
-            onExport={exportData}
-            onImport={importData}
-            onOpenProviders={() => setView('providers')}
-            onSignOut={auth.signOut}
-            onClearSubscriptions={clearSubscriptions}
-          />
-        )}
+            {view === 'settings' && (
+              <SettingsView
+                settings={data.settings}
+                email={auth.session.user.email}
+                providerCount={data.providers.length}
+                installAvailable={pwa.installAvailable}
+                onEnableNotifications={requestNotifications}
+                onToggleTheme={toggleTheme}
+                onInstall={() => void pwa.install()}
+                onExport={exportData}
+                onImport={importData}
+                onOpenProviders={() => setView('providers')}
+                onSignOut={auth.signOut}
+                onClearSubscriptions={clearSubscriptions}
+              />
+            )}
 
-        {view === 'providers' && (
-          <ProvidersView
-            providers={data.providers}
-            categories={data.categories}
-            onBack={() => setView('settings')}
-            onSave={data.saveProvider}
-            onDelete={deleteProvider}
-          />
+            {view === 'providers' && (
+              <ProvidersView
+                providers={data.providers}
+                categories={data.categories}
+                onBack={() => setView('settings')}
+                onSave={data.saveProvider}
+                onDelete={deleteProvider}
+              />
+            )}
+          </div>
         )}
       </main>
 
