@@ -511,10 +511,16 @@ function App() {
       setSession(data.session)
       setAuthReady(true)
     })
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession)
       setAuthReady(true)
-      if (!nextSession) setRemoteReady(false)
+      if (!nextSession) {
+        setRemoteReady(false)
+        if (event === 'SIGNED_OUT') {
+          setSubscriptions([])
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      }
     })
     return () => listener.subscription.unsubscribe()
   }, [])
