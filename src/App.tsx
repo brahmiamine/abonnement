@@ -77,8 +77,6 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
 }
 
-const STORAGE_KEY = 'subly-subscriptions-v1'
-const SETTINGS_KEY = 'subly-settings-v1'
 const NOTIFIED_KEY = 'subly-notified-v1'
 
 const defaultSettings: Settings = {
@@ -90,22 +88,6 @@ const defaultSettings: Settings = {
 const isoToday = () => new Date().toISOString().slice(0, 10)
 
 const uid = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
-
-const readSubscriptions = (): Subscription[] => {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as Subscription[]
-  } catch {
-    return []
-  }
-}
-
-const readSettings = (): Settings => {
-  try {
-    return { ...defaultSettings, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }
-  } catch {
-    return defaultSettings
-  }
-}
 
 const providerInitials = (name: string) =>
   name
@@ -859,8 +841,8 @@ function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) {
 
 
 function App() {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(readSubscriptions)
-  const [settings, setSettings] = useState<Settings>(readSettings)
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [settings, setSettings] = useState<Settings>(defaultSettings)
   const [providerCatalog, setProviderCatalog] = useState<Provider[]>([])
   const [categoryCatalog, setCategoryCatalog] = useState<Category[]>([])
   const [session, setSession] = useState<Session | null>(null)
@@ -890,7 +872,8 @@ function App() {
         setRemoteReady(false)
         if (event === 'SIGNED_OUT') {
           setSubscriptions([])
-          localStorage.removeItem(STORAGE_KEY)
+          setProviderCatalog([])
+          setCategoryCatalog([])
         }
       }
     })
@@ -915,13 +898,7 @@ function App() {
         setProviderCatalog(remoteProviders)
         setCategoryCatalog(remoteCategories)
 
-        const cachedItems = readSubscriptions()
-        let source = remoteItems
-        if (remoteItems.length === 0 && cachedItems.length > 0) {
-          source = cachedItems
-          await upsertSubscriptions(cachedItems, session.user.id)
-        }
-
+        const source = remoteItems
         const normalized = source.map(rollAutoRenewalForward)
         setSubscriptions(normalized)
 
@@ -931,7 +908,7 @@ function App() {
         if (remoteSettings) {
           setSettings((current) => ({ ...current, ...remoteSettings }))
         } else {
-          await saveUserSettings(readSettings(), session.user.id)
+          await saveUserSettings(defaultSettings, session.user.id)
         }
 
         setRemoteReady(true)
@@ -950,11 +927,6 @@ function App() {
   }, [session?.user.id])
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions))
-  }, [subscriptions])
-
-  useEffect(() => {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
     document.documentElement.dataset.theme = settings.theme
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', settings.theme === 'dark' ? '#0b1020' : '#f5f7fb')
   }, [settings])
