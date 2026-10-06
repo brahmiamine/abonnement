@@ -1,7 +1,7 @@
 {
   "name": "Subly — Mes abonnements",
   "short_name": "Subly",
-  "description": "Suivez vos abonnements, leurs échéances et votre budget mensuel.",
+  "description": "Suivez vos abonnements, leurs échéances et vos dépenses récurrentes.",
   "lang": "fr",
   "start_url": "/abonnement/",
   "scope": "/abonnement/",
