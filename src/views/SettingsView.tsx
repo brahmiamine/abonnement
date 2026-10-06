@@ -7,41 +7,38 @@ import {
   Download,
   LogOut,
   Moon,
+  Store,
   Sun,
   Trash2,
   Upload,
 } from 'lucide-react'
-import type { Category, Provider, Settings } from '../types'
-import { ProviderManager } from '../components/providers/ProviderManager'
+import { ChevronRight } from 'lucide-react'
+import type { Settings } from '../types'
 
 export function SettingsView({
   settings,
   email,
-  providers,
-  categories,
+  providerCount,
   installAvailable,
   onEnableNotifications,
   onToggleTheme,
   onInstall,
   onExport,
   onImport,
-  onSaveProvider,
-  onDeleteProvider,
+  onOpenProviders,
   onSignOut,
   onClearSubscriptions,
 }: {
   settings: Settings
   email?: string
-  providers: Provider[]
-  categories: Category[]
+  providerCount: number
   installAvailable: boolean
   onEnableNotifications: () => Promise<void>
   onToggleTheme: () => void
   onInstall: () => void
   onExport: () => void
   onImport: (file?: File) => Promise<void>
-  onSaveProvider: (provider: Provider) => Promise<void>
-  onDeleteProvider: (provider: Provider) => Promise<void>
+  onOpenProviders: () => void
   onSignOut: () => Promise<unknown>
   onClearSubscriptions: () => Promise<void>
 }) {
@@ -49,12 +46,16 @@ export function SettingsView({
 
   return (
     <section className="settings-view">
-      <ProviderManager
-        providers={providers}
-        categories={categories}
-        onSave={onSaveProvider}
-        onDelete={onDeleteProvider}
-      />
+      <div className="settings-card panel">
+        <div className="settings-icon"><Store size={21} /></div>
+        <div className="settings-copy">
+          <h3>Fournisseurs</h3>
+          <p>{providerCount} fournisseur{providerCount > 1 ? 's' : ''} dans ton catalogue : ajoute, modifie ou supprime-les et leurs logos.</p>
+        </div>
+        <button className="secondary-btn" onClick={onOpenProviders}>
+          Gérer <ChevronRight size={17} />
+        </button>
+      </div>
 
       <div className="settings-card panel">
         <div className="settings-icon"><Bell size={21} /></div>

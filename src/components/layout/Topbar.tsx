@@ -6,6 +6,7 @@ const titles: Record<View, string> = {
   subscriptions: 'Tous les abonnements',
   expenses: 'Dépenses',
   settings: 'Réglages',
+  providers: 'Fournisseurs',
 }
 
 export function Topbar({

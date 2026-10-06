@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { defaultSettings, uid } from '../config'
+import { defaultSettings, initialSettings, uid } from '../config'
+import { readStoredTheme, storeTheme, themeColor } from '../domain/theme'
 import { rollAutoRenewalForward } from '../domain/subscriptions'
 import type { BackupPayload } from '../domain/backup'
 import { customLogo } from '../data/providers'
@@ -31,7 +32,7 @@ import type {
 export function useAppData(session: Session | null) {
   const userId = session?.user.id
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
-  const [settings, setSettings] = useState<Settings>(defaultSettings)
+  const [settings, setSettings] = useState<Settings>(initialSettings)
   const [providers, setProviders] = useState<Provider[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [dataReady, setDataReady] = useState(false)
@@ -42,7 +43,7 @@ export function useAppData(session: Session | null) {
       setSubscriptions([])
       setProviders([])
       setCategories([])
-      setSettings(defaultSettings)
+      setSettings(initialSettings())
       setDataReady(false)
       setSyncState('idle')
       return
@@ -80,7 +81,12 @@ export function useAppData(session: Session | null) {
         setSubscriptions(normalized)
         setProviders(remoteProviders)
         setCategories(remoteCategories)
-        setSettings({ ...defaultSettings, ...(remoteSettings || {}) })
+        setSettings({
+          ...defaultSettings,
+          ...(remoteSettings || {}),
+          // Le choix fait sur cet appareil prime sur la valeur distante.
+          theme: readStoredTheme() ?? remoteSettings?.theme ?? defaultSettings.theme,
+        })
         setSyncState('idle')
       } catch (error) {
         console.error('Subly data sync failed', error)
@@ -100,8 +106,10 @@ export function useAppData(session: Session | null) {
     document.documentElement.dataset.theme = settings.theme
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', settings.theme === 'dark' ? '#0b1020' : '#f5f7fb')
-  }, [settings.theme])
+      ?.setAttribute('content', themeColor(settings.theme))
+    // Avant la fin du chargement, le thème par défaut ne doit pas écraser un choix distant.
+    if (dataReady) storeTheme(settings.theme)
+  }, [settings.theme, dataReady])
 
   useEffect(() => {
     if (!userId || !dataReady) return

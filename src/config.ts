@@ -1,3 +1,4 @@
+import { readStoredTheme } from './domain/theme'
 import type { Settings } from './types'
 
 export const APP_URL = 'https://brahmiamine.github.io/abonnement/'
@@ -7,6 +8,12 @@ export const defaultSettings: Settings = {
   theme: 'dark',
   remindersEnabled: false,
 }
+
+/** Réglages de départ : le thème choisi sur cet appareil survit au rafraîchissement. */
+export const initialSettings = (): Settings => ({
+  ...defaultSettings,
+  theme: readStoredTheme() ?? defaultSettings.theme,
+})
 
 export const isoToday = () => {
   const date = new Date()

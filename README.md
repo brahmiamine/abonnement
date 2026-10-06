@@ -62,3 +62,14 @@ URL :
 ## Notifications
 
 Les notifications Web nécessitent l'autorisation du navigateur et sont vérifiées lorsque l'application est ouverte ou redevient active. GitHub Pages étant un hébergement statique, des notifications push garanties quand l'application est complètement fermée nécessiteraient un service push/backend supplémentaire.
+
+## Tests
+
+- `npm test` : tests unitaires et d’intégration (Vitest + Testing Library)
+- `npm run test:coverage` : idem avec couverture
+- `npm run test:e2e` : tests Playwright de bout en bout sur desktop, tablette et mobiles (Supabase est simulé, aucun compte requis). La première fois : `npx playwright install chromium`.
+- Les captures de chaque écran sont écrites dans `e2e/screenshots/` (ignoré par git).
+
+## Navigation
+
+L’écran courant est dans l’URL (`#/subscriptions`, `#/providers`…) : un rafraîchissement reste sur la même page. Le thème choisi est mémorisé sur l’appareil.

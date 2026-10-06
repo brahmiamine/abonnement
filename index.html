@@ -8,6 +8,15 @@
     <link rel="icon" href="/abonnement/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" sizes="192x192" href="/abonnement/icon-192.png" />
     <link rel="manifest" href="/abonnement/manifest.webmanifest" />
+    <script>
+      try {
+        var t = localStorage.getItem('subly-theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.dataset.theme = t;
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', t === 'dark' ? '#0b1020' : '#f5f7fb');
+        }
+      } catch (e) {}
+    </script>
     <title>Subly — Mes abonnements</title>
   </head>
   <body>

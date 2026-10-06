@@ -10,14 +10,16 @@ import { createBackup, parseBackup, serializeBackup } from './domain/backup'
 import { expenseSummary, expensesByCategory } from './domain/expenses'
 import { daysUntil } from './domain/subscriptions'
 import { useAppData } from './hooks/useAppData'
+import { useHashView } from './hooks/useHashView'
 import { useAuth } from './hooks/useAuth'
 import { useNotifications } from './hooks/useNotifications'
 import { usePwaInstall } from './hooks/usePwaInstall'
-import type { Provider, Subscription, SubscriptionDraft, View } from './types'
+import type { Provider, Subscription, SubscriptionDraft } from './types'
 import { downloadJson } from './utils/backup'
 import { isoToday } from './config'
 import { ExpensesView } from './views/ExpensesView'
 import { HomeView } from './views/HomeView'
+import { ProvidersView } from './views/ProvidersView'
 import { SettingsView } from './views/SettingsView'
 import { SubscriptionsView } from './views/SubscriptionsView'
 
@@ -25,7 +27,7 @@ function App() {
   const auth = useAuth()
   const data = useAppData(auth.session)
   const pwa = usePwaInstall()
-  const [view, setView] = useState<View>('home')
+  const [view, setView] = useHashView()
   const [editing, setEditing] = useState<Subscription | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -209,18 +211,26 @@ function App() {
           <SettingsView
             settings={data.settings}
             email={auth.session.user.email}
-            providers={data.providers}
-            categories={data.categories}
+            providerCount={data.providers.length}
             installAvailable={pwa.installAvailable}
             onEnableNotifications={requestNotifications}
             onToggleTheme={toggleTheme}
             onInstall={() => void pwa.install()}
             onExport={exportData}
             onImport={importData}
-            onSaveProvider={data.saveProvider}
-            onDeleteProvider={deleteProvider}
+            onOpenProviders={() => setView('providers')}
             onSignOut={auth.signOut}
             onClearSubscriptions={clearSubscriptions}
+          />
+        )}
+
+        {view === 'providers' && (
+          <ProvidersView
+            providers={data.providers}
+            categories={data.categories}
+            onBack={() => setView('settings')}
+            onSave={data.saveProvider}
+            onDelete={deleteProvider}
           />
         )}
       </main>
