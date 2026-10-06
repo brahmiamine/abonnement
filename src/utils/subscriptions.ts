@@ -43,12 +43,20 @@ export const subscriptionMonthlyTotal = (items: Subscription[]) =>
     .reduce((sum, item) => sum + toMonthly(item.price, item.cycle), 0)
 
 
+const addCalendarMonths = (date: Date, months: number) => {
+  const day = date.getDate()
+  date.setDate(1)
+  date.setMonth(date.getMonth() + months)
+  const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+  date.setDate(Math.min(day, lastDay))
+}
+
 export const advanceRenewalDate = (date: string, cycle: BillingCycle) => {
   const value = new Date(`${date}T12:00:00`)
   if (cycle === 'weekly') value.setDate(value.getDate() + 7)
-  if (cycle === 'monthly') value.setMonth(value.getMonth() + 1)
-  if (cycle === 'quarterly') value.setMonth(value.getMonth() + 3)
-  if (cycle === 'yearly') value.setFullYear(value.getFullYear() + 1)
+  if (cycle === 'monthly') addCalendarMonths(value, 1)
+  if (cycle === 'quarterly') addCalendarMonths(value, 3)
+  if (cycle === 'yearly') addCalendarMonths(value, 12)
   return value.toISOString().slice(0, 10)
 }
 
