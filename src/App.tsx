@@ -90,10 +90,7 @@ function App() {
   }
 
   const requestNotifications = async () => {
-    if (!('Notification' in window)) {
-      window.alert('Les notifications ne sont pas prises en charge par ce navigateur.')
-      return
-    }
+    if (!('Notification' in window)) return
 
     const permission = await Notification.requestPermission()
     data.setSettings((current) => ({
