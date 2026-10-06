@@ -229,7 +229,7 @@ input, select, textarea { color: var(--text); }
 @media (max-width: 1100px) {
   .metrics-grid { grid-template-columns: repeat(2,1fr); }
   .subscriptions-grid { grid-template-columns: repeat(2,1fr); }
-  .dashboard-grid,   }
+  .dashboard-grid { grid-template-columns: 1fr; }
 
 @media (max-width: 780px) {
   .sidebar { display: none; }
@@ -245,7 +245,8 @@ input, select, textarea { color: var(--text); }
   .metric-card > strong { font-size: 21px; }
   .metric-icon { margin-bottom: 12px; }
   .dashboard-grid { gap: 12px; }
-  .upcoming-panel,   .renewal-item { grid-template-columns: auto minmax(0,1fr) auto; gap: 9px; }
+  .upcoming-panel { padding: 16px; }
+  .renewal-item { grid-template-columns: auto minmax(0,1fr) auto; gap: 9px; }
   .renewal-price, .renewal-chevron { display: none; }
   .renewal-badge { font-size: 9px; padding: 5px 7px; }
   .toolbar { align-items: stretch; flex-direction: column; }
@@ -256,7 +257,7 @@ input, select, textarea { color: var(--text); }
   .subscriptions-grid { grid-template-columns: 1fr; gap: 10px; }
   .subscription-card { padding: 15px; }
   .sub-actions { opacity: 1; }
-        .settings-card { grid-template-columns: auto 1fr; padding: 15px; }
+  .settings-card { grid-template-columns: auto 1fr; padding: 15px; }
   .settings-card > button, .settings-actions { grid-column: 1 / -1; width: 100%; }
   .settings-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .settings-card > button { justify-self: stretch; }
