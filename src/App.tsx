@@ -10,6 +10,8 @@ import {
   Cloud,
   Download,
   Edit3,
+  Eye,
+  EyeOff,
   Home,
   LockKeyhole,
   LogOut,
@@ -424,10 +426,13 @@ function SubscriptionCard({
 }
 
 
+const APP_URL = 'https://brahmiamine.github.io/abonnement/'
+
 function AuthScreen() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -443,7 +448,7 @@ function AuthScreen() {
         const { data, error: authError } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/abonnement/` },
+          options: { emailRedirectTo: APP_URL },
         })
         if (authError) throw authError
         if (!data.session) {
@@ -474,7 +479,27 @@ function AuthScreen() {
           </div>
           <div className="field">
             <label>Mot de passe</label>
-            <div className="auth-input"><LockKeyhole size={18} /><input type="password" minLength={6} required autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="6 caractères minimum" /></div>
+            <div className="auth-input password-input">
+              <LockKeyhole size={18} />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                minLength={6}
+                required
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="6 caractères minimum"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                title={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           {error && <div className="auth-message">{error}</div>}
           <button className="primary-btn auth-submit" disabled={loading}>
@@ -482,7 +507,7 @@ function AuthScreen() {
             {loading ? 'Chargement…' : mode === 'login' ? 'Se connecter' : 'Créer le compte'}
           </button>
         </form>
-        <button className="auth-switch" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}>
+        <button className="auth-switch" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setShowPassword(false); setError('') }}>
           {mode === 'login' ? 'Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
         </button>
       </div>
