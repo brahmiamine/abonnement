@@ -22,6 +22,9 @@ type SubscriptionRow = {
   created_at: string
 }
 
+const SUBSCRIPTION_COLUMNS =
+  'id,user_id,provider_id,name,logo,website,category,price,currency,cycle,start_date,renewal_date,expiration_date,status,auto_renew,remind_days,notes,created_at'
+
 const fromRow = (row: SubscriptionRow): Subscription => ({
   id: row.id,
   providerId: row.provider_id || undefined,
@@ -65,20 +68,28 @@ const toRow = (item: Subscription, userId: string) => ({
 export async function loadSubscriptions() {
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('*')
+    .select(SUBSCRIPTION_COLUMNS)
     .order('renewal_date', { ascending: true })
+
   if (error) throw error
   return (data as SubscriptionRow[]).map(fromRow)
 }
 
 export async function upsertSubscription(item: Subscription, userId: string) {
-  const { error } = await supabase.from('subscriptions').upsert(toRow(item, userId), { onConflict: 'id' })
+  const { error } = await supabase
+    .from('subscriptions')
+    .upsert(toRow(item, userId), { onConflict: 'id' })
+
   if (error) throw error
 }
 
 export async function upsertSubscriptions(items: Subscription[], userId: string) {
   if (!items.length) return
-  const { error } = await supabase.from('subscriptions').upsert(items.map((item) => toRow(item, userId)), { onConflict: 'id' })
+
+  const { error } = await supabase
+    .from('subscriptions')
+    .upsert(items.map((item) => toRow(item, userId)), { onConflict: 'id' })
+
   if (error) throw error
 }
 
@@ -87,10 +98,7 @@ export async function removeSubscription(id: string) {
   if (error) throw error
 }
 
-export async function removeAllSubscriptions() {
-  const { data: userData } = await supabase.auth.getUser()
-  const userId = userData.user?.id
-  if (!userId) return
+export async function removeAllSubscriptions(userId: string) {
   const { error } = await supabase.from('subscriptions').delete().eq('user_id', userId)
   if (error) throw error
 }
@@ -98,12 +106,13 @@ export async function removeAllSubscriptions() {
 export async function loadUserSettings(): Promise<Partial<Settings> | null> {
   const { data, error } = await supabase
     .from('subscription_settings')
-    .select('monthly_budget, theme, reminders_enabled')
+    .select('theme,reminders_enabled')
     .maybeSingle()
+
   if (error) throw error
   if (!data) return null
+
   return {
-    monthlyBudget: Number(data.monthly_budget),
     theme: data.theme,
     remindersEnabled: data.reminders_enabled,
   }
@@ -112,9 +121,9 @@ export async function loadUserSettings(): Promise<Partial<Settings> | null> {
 export async function saveUserSettings(settings: Settings, userId: string) {
   const { error } = await supabase.from('subscription_settings').upsert({
     user_id: userId,
-    monthly_budget: settings.monthlyBudget,
     theme: settings.theme,
     reminders_enabled: settings.remindersEnabled,
   }, { onConflict: 'user_id' })
+
   if (error) throw error
 }

@@ -44,8 +44,13 @@ export type Subscription = {
   createdAt: string
 }
 
+export type SubscriptionDraft = Omit<Subscription, 'id' | 'createdAt'>
+
 export type Settings = {
-  monthlyBudget: number
   theme: 'dark' | 'light'
   remindersEnabled: boolean
 }
+
+export type View = 'home' | 'subscriptions' | 'expenses' | 'settings'
+export type SubscriptionFilter = 'all' | 'soon' | 'trial' | 'expensive'
+export type SyncState = 'idle' | 'syncing' | 'error'

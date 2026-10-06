@@ -1,5 +1,5 @@
 import type { Category, Subscription } from '../types'
-import { toAnnual, toMonthly } from '../utils/subscriptions'
+import { toAnnual, toMonthly } from './subscriptions'
 
 export const expenseSummary = (items: Subscription[]) => {
   const active = items.filter((item) => item.status !== 'paused')

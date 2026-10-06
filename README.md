@@ -1,28 +1,47 @@
 # Subly — gestionnaire d'abonnements
 
-PWA React + Vite pour suivre ses abonnements, les renouvellements et son budget.
+PWA React + Vite pour suivre ses abonnements, ses renouvellements et ses dépenses récurrentes.
 
 ## Fonctionnalités
 
-- Dashboard : dépenses mensuelles, projection annuelle et prochaines échéances.
+- Tableau de bord : dépenses mensuelles, projection annuelle et prochaines échéances.
 - Ajout, modification et suppression d'abonnements.
-- Recherche de fournisseurs connus (Netflix, Spotify, ChatGPT, Claude, Disney+, etc.) avec logos.
-- Fournisseurs personnalisés avec récupération de favicon depuis leur site.
+- Catalogue de fournisseurs stocké dans Supabase, modifiable depuis l'application.
+- Logos de fournisseurs personnalisables.
 - Cycles hebdomadaire, mensuel, trimestriel et annuel.
-- Date de début, prochain renouvellement, expiration optionnelle et statut d'essai.
+- Dates de renouvellement et de fin calculées automatiquement.
+- Renouvellement automatique.
 - Rappels configurables à J-30, J-14, J-7, J-3, J-1 ou le jour J.
-- Budget mensuel, répartition par catégorie et repères de dépenses.
+- Analyse des dépenses par catégorie, coût moyen et abonnement le plus cher.
+- Authentification email/mot de passe et récupération de mot de passe via Supabase Auth.
 - Thème sombre / clair.
-- Données enregistrées localement dans le navigateur.
+- Données métier stockées dans Supabase avec Row Level Security.
 - Export et import JSON.
-- PWA installable et fonctionnement hors ligne après une première visite.
+- PWA installable et fonctionnement hors ligne pour l'interface après une première visite.
 - Déploiement automatique avec GitHub Actions sur GitHub Pages.
+
+## Architecture
+
+Le code est séparé par responsabilité :
+
+- `src/domain` : calculs purs et testables.
+- `src/hooks` : orchestration Auth, données Supabase, PWA et notifications.
+- `src/lib` : accès Supabase.
+- `src/components` : composants UI réutilisables.
+- `src/views` : écrans de l'application.
+- `src/App.tsx` : composition et navigation uniquement.
 
 ## Développement
 
 ```bash
 npm install
 npm run dev
+```
+
+## Tests
+
+```bash
+npm test
 ```
 
 ## Build
@@ -36,9 +55,7 @@ npm run preview
 
 Le projet utilise la base Vite `/abonnement/` et le workflow `.github/workflows/deploy-pages.yml`.
 
-Dans **Settings → Pages** du dépôt, sélectionner **GitHub Actions** comme source si ce n'est pas déjà le cas.
-
-L'URL cible est :
+URL :
 
 `https://brahmiamine.github.io/abonnement/`
 
