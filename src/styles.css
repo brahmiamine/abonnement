@@ -313,3 +313,60 @@ input, select, textarea { color: var(--text); }
   .metric-card:nth-child(2), .metric-card:nth-child(4) { justify-content: flex-end; }
   .budget-ring { width: 132px; }
 }
+
+
+/* Supabase authentication & sync */
+.auth-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(124,92,255,.18), transparent 32%),
+    radial-gradient(circle at 85% 80%, rgba(45,212,162,.10), transparent 28%),
+    var(--bg);
+}
+.auth-card {
+  width: min(430px, 100%);
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
+  box-shadow: var(--shadow);
+}
+.auth-brand { padding: 0 0 24px; }
+.auth-card h1 { margin: 8px 0 6px; font-size: 30px; letter-spacing: -1px; }
+.auth-copy { margin: 0 0 22px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.auth-card form { display: grid; gap: 15px; }
+.auth-input { position: relative; display: flex; align-items: center; }
+.auth-input svg { position: absolute; left: 12px; color: var(--muted); }
+.auth-input input {
+  width: 100%; min-height: 46px; border-radius: 11px; border: 1px solid var(--line);
+  background: var(--panel-2); padding: 0 12px 0 40px; outline: none;
+}
+.auth-input input:focus { border-color: rgba(124,92,255,.55); box-shadow: 0 0 0 3px var(--accent-soft); }
+.auth-submit { width: 100%; margin-top: 2px; }
+.auth-submit:disabled { opacity: .65; cursor: wait; }
+.auth-switch {
+  width: 100%; border: 0; background: transparent; color: var(--accent-2);
+  margin-top: 16px; padding: 8px; font-size: 11px; cursor: pointer;
+}
+.auth-message { padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-2); font-size: 11px; line-height: 1.5; }
+.auth-loading { min-height: 100vh; display: grid; place-items: center; align-content: center; gap: 10px; color: var(--muted); font-size: 12px; }
+.spin { animation: spin .85s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.sync-pill {
+  min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 20px; color: var(--success);
+  background: var(--panel); font-size: 10px; font-weight: 600;
+}
+.sync-pill.syncing { color: var(--accent-2); }
+.sync-pill.error { color: var(--warning); }
+.status-chip.auto { color: var(--accent-2); background: var(--accent-soft); }
+
+@media (max-width: 780px) {
+  .sync-pill { display: none; }
+  .auth-screen { padding: 14px; }
+  .auth-card { padding: 22px 18px; border-radius: 21px; }
+}
