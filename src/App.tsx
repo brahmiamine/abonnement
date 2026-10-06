@@ -429,7 +429,7 @@ function SubscriptionCard({
 const APP_URL = 'https://brahmiamine.github.io/abonnement/'
 
 function AuthScreen() {
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -444,6 +444,12 @@ function AuthScreen() {
       if (mode === 'login') {
         const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
         if (authError) throw authError
+      } else if (mode === 'forgot') {
+        const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: APP_URL,
+        })
+        if (authError) throw authError
+        setError('Lien envoyé. Consulte ton e-mail puis ouvre le lien pour choisir un nouveau mot de passe.')
       } else {
         const { data, error: authError } = await supabase.auth.signUp({
           email,
@@ -470,56 +476,178 @@ function AuthScreen() {
           <span>Subly</span>
         </div>
         <span className="eyebrow">Tes abonnements, partout avec toi</span>
-        <h1>{mode === 'login' ? 'Connexion' : 'Créer mon compte'}</h1>
-        <p className="auth-copy">Tes données sont synchronisées dans Supabase et protégées par ton compte.</p>
+        <h1>{mode === 'login' ? 'Connexion' : mode === 'signup' ? 'Créer mon compte' : 'Mot de passe oublié'}</h1>
+        <p className="auth-copy">
+          {mode === 'forgot'
+            ? 'Indique ton adresse e-mail. Nous t’enverrons un lien sécurisé pour définir un nouveau mot de passe.'
+            : 'Tes données sont synchronisées dans Supabase et protégées par ton compte.'}
+        </p>
         <form onSubmit={submit}>
           <div className="field">
             <label>Adresse e-mail</label>
             <div className="auth-input"><Mail size={18} /><input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nom@email.com" /></div>
           </div>
-          <div className="field">
-            <label>Mot de passe</label>
-            <div className="auth-input password-input">
-              <LockKeyhole size={18} />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                minLength={6}
-                required
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="6 caractères minimum"
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-                title={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+          {mode !== 'forgot' && (
+            <div className="field">
+              <div className="field-label-row">
+                <label>Mot de passe</label>
+                {mode === 'login' && (
+                  <button
+                    type="button"
+                    className="forgot-link"
+                    onClick={() => { setMode('forgot'); setPassword(''); setShowPassword(false); setError('') }}
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                )}
+              </div>
+              <div className="auth-input password-input">
+                <LockKeyhole size={18} />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  minLength={6}
+                  required
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="6 caractères minimum"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  title={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
           {error && <div className="auth-message">{error}</div>}
           <button className="primary-btn auth-submit" disabled={loading}>
-            {loading ? <RefreshCw size={18} className="spin" /> : mode === 'login' ? <LockKeyhole size={18} /> : <UserPlus size={18} />}
-            {loading ? 'Chargement…' : mode === 'login' ? 'Se connecter' : 'Créer le compte'}
+            {loading ? <RefreshCw size={18} className="spin" /> : mode === 'login' ? <LockKeyhole size={18} /> : mode === 'signup' ? <UserPlus size={18} /> : <Mail size={18} />}
+            {loading ? 'Chargement…' : mode === 'login' ? 'Se connecter' : mode === 'signup' ? 'Créer le compte' : 'Envoyer le lien'}
           </button>
         </form>
-        <button className="auth-switch" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setShowPassword(false); setError('') }}>
-          {mode === 'login' ? 'Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
+        <button
+          className="auth-switch"
+          onClick={() => {
+            setMode(mode === 'login' ? 'signup' : 'login')
+            setPassword('')
+            setShowPassword(false)
+            setError('')
+          }}
+        >
+          {mode === 'login'
+            ? 'Pas encore de compte ? Créer un compte'
+            : mode === 'signup'
+              ? 'Déjà un compte ? Se connecter'
+              : '← Retour à la connexion'}
         </button>
       </div>
     </div>
   )
 }
 
+function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) {
+  const [password, setPassword] = useState('')
+  const [confirmation, setConfirmation] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setMessage('')
+    if (password.length < 6) {
+      setMessage('Le mot de passe doit contenir au moins 6 caractères.')
+      return
+    }
+    if (password !== confirmation) {
+      setMessage('Les deux mots de passe ne correspondent pas.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) throw error
+      window.history.replaceState({}, document.title, '/abonnement/')
+      onComplete()
+    } catch (value) {
+      setMessage(value instanceof Error ? value.message : 'Impossible de modifier le mot de passe.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="auth-screen">
+      <div className="auth-card">
+        <div className="brand auth-brand">
+          <img src="/abonnement/icon.svg" alt="" />
+          <span>Subly</span>
+        </div>
+        <span className="eyebrow">Sécurité du compte</span>
+        <h1>Nouveau mot de passe</h1>
+        <p className="auth-copy">Choisis un nouveau mot de passe pour terminer la récupération de ton compte.</p>
+        <form onSubmit={submit}>
+          <div className="field">
+            <label>Nouveau mot de passe</label>
+            <div className="auth-input password-input">
+              <LockKeyhole size={18} />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                minLength={6}
+                required
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="6 caractères minimum"
+              />
+              <button type="button" className="password-toggle" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+          <div className="field">
+            <label>Confirmer le mot de passe</label>
+            <div className="auth-input password-input">
+              <LockKeyhole size={18} />
+              <input
+                type={showConfirmation ? 'text' : 'password'}
+                minLength={6}
+                required
+                autoComplete="new-password"
+                value={confirmation}
+                onChange={(e) => setConfirmation(e.target.value)}
+                placeholder="Répète le mot de passe"
+              />
+              <button type="button" className="password-toggle" onClick={() => setShowConfirmation((value) => !value)} aria-label={showConfirmation ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
+                {showConfirmation ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+          {message && <div className="auth-message">{message}</div>}
+          <button className="primary-btn auth-submit" disabled={loading}>
+            {loading ? <RefreshCw size={18} className="spin" /> : <Check size={18} />}
+            {loading ? 'Enregistrement…' : 'Enregistrer le nouveau mot de passe'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+
 function App() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(readSubscriptions)
   const [settings, setSettings] = useState<Settings>(readSettings)
   const [session, setSession] = useState<Session | null>(null)
   const [authReady, setAuthReady] = useState(false)
+  const [passwordRecovery, setPasswordRecovery] = useState(false)
   const [remoteReady, setRemoteReady] = useState(false)
   const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'error'>('idle')
   const [view, setView] = useState<View>('home')
@@ -539,6 +667,7 @@ function App() {
     const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession)
       setAuthReady(true)
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true)
       if (!nextSession) {
         setRemoteReady(false)
         if (event === 'SIGNED_OUT') {
@@ -786,6 +915,9 @@ function App() {
   }
 
   if (!session) return <AuthScreen />
+  if (passwordRecovery) {
+    return <ResetPasswordScreen onComplete={() => setPasswordRecovery(false)} />
+  }
 
   const budgetPercent = settings.monthlyBudget > 0 ? Math.min((monthly / settings.monthlyBudget) * 100, 100) : 0
   const budgetDiff = settings.monthlyBudget - monthly
