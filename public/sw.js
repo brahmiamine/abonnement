@@ -1,4 +1,4 @@
-const CACHE = 'subly-shell-v1'
+const CACHE = 'subly-shell-v2'
 const BASE = '/abonnement/'
 const CORE = [BASE, BASE + 'manifest.webmanifest', BASE + 'icon.svg', BASE + 'icon-192.png', BASE + 'icon-512.png']
 
