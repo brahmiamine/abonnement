@@ -72,7 +72,7 @@ export function Topbar({
           </span>
         </button>
 
-        <button className="primary-btn add-btn" onClick={onAdd}>
+        <button className="primary-btn add-btn" onClick={onAdd} aria-label="Ajouter un abonnement">
           <Plus size={18} /> <span>Ajouter</span>
         </button>
       </div>

@@ -15,16 +15,16 @@
   --text: #f7f9fc;
   --muted: #8995aa;
   --line: rgba(255, 255, 255, 0.075);
-  --accent: #7c5cff;
+  --accent: #6d4dff;
   --accent-2: #9b85ff;
-  --accent-soft: rgba(124, 92, 255, 0.13);
+  --accent-soft: rgba(109, 77, 255, 0.13);
   --success: #2dd4a2;
   --danger: #ff6577;
   --warning: #ffb84d;
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --focus-ring: 0 0 0 3px var(--accent-soft);
-  --focus-border: rgba(124, 92, 255, 0.55);
+  --focus-border: rgba(109, 77, 255, 0.6);
 }
 
 :root[data-theme='light'] {
@@ -35,11 +35,15 @@
   --panel-2: #f7f8fc;
   --panel-hover: #f1f3f9;
   --text: #172033;
-  --muted: #6b7485;
+  /* Teintes assombries pour tenir le contraste WCAG AA (4,5:1) sur fond clair. */
+  --muted: #5b6477;
   --line: rgba(25, 35, 55, 0.09);
   --accent: #6547ed;
-  --accent-2: #8169f3;
+  --accent-2: #523ad3;
   --accent-soft: rgba(101, 71, 237, 0.1);
+  --success: #087356;
+  --danger: #b9243a;
+  --warning: #8a5200;
   --shadow: 0 20px 48px rgba(35, 45, 75, 0.1);
 }
 
@@ -1397,7 +1401,6 @@ a:hover {
   font-weight: 600;
 }
 .field label span {
-  opacity: 0.7;
   font-weight: 400;
 }
 .field > input,
@@ -2409,7 +2412,10 @@ a:hover {
   background: var(--panel-hover);
 }
 .calendar-day.outside {
-  opacity: 0.4;
+  background: transparent;
+}
+.calendar-day.outside .calendar-day-number {
+  color: var(--muted);
 }
 .calendar-day.today .calendar-day-number {
   background: var(--accent);

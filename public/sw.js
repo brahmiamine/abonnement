@@ -38,13 +38,34 @@ self.addEventListener('fetch', (event) => {
   )
 })
 
+// Notification push envoyée par la fonction send-reminders (application fermée comprise).
+self.addEventListener('push', (event) => {
+  let payload = {}
+  try {
+    payload = event.data ? event.data.json() : {}
+  } catch {
+    payload = { body: event.data ? event.data.text() : '' }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title || 'Subly', {
+      body: payload.body || '',
+      icon: BASE + 'icon-192.png',
+      badge: BASE + 'icon-192.png',
+      tag: payload.tag,
+      data: { url: payload.url || BASE },
+    }),
+  )
+})
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
+  const target = (event.notification.data && event.notification.data.url) || BASE
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       const existing = clients.find((client) => client.url.includes(BASE))
       if (existing) return existing.focus()
-      return self.clients.openWindow(BASE)
+      return self.clients.openWindow(target)
     }),
   )
 })

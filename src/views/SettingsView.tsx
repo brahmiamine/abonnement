@@ -21,7 +21,9 @@ export function SettingsView({
   email,
   providerCount,
   installAvailable,
+  pushActive,
   onEnableNotifications,
+  onDisableNotifications,
   onToggleTheme,
   onInstall,
   onExport,
@@ -34,7 +36,9 @@ export function SettingsView({
   email?: string
   providerCount: number
   installAvailable: boolean
+  pushActive: boolean
   onEnableNotifications: () => Promise<void>
+  onDisableNotifications: () => Promise<void>
   onToggleTheme: () => void
   onInstall: () => void
   onExport: () => void
@@ -70,24 +74,22 @@ export function SettingsView({
         <div className="settings-copy">
           <h3>Rappels de renouvellement</h3>
           <p>
-            Affiche une notification quand une échéance approche, selon les délais choisis pour
-            chaque abonnement.
+            {settings.remindersEnabled
+              ? pushActive
+                ? 'Notifications push actives sur cet appareil : tu es prévenu à 9 h, même application fermée.'
+                : 'Notifications actives tant que Subly est ouvert. Le rappel application fermée n’est pas disponible ici.'
+              : 'Reçois une notification quand une échéance approche, selon les délais choisis pour chaque abonnement.'}
           </p>
         </div>
-        <button
-          className={settings.remindersEnabled ? 'secondary-btn success-btn' : 'primary-btn'}
-          onClick={() => void onEnableNotifications()}
-        >
-          {settings.remindersEnabled ? (
-            <>
-              <Check size={17} /> Activés
-            </>
-          ) : (
-            <>
-              <BellRing size={17} /> Activer
-            </>
-          )}
-        </button>
+        {settings.remindersEnabled ? (
+          <button className="secondary-btn" onClick={() => void onDisableNotifications()}>
+            <Check size={17} /> Activés · Désactiver
+          </button>
+        ) : (
+          <button className="primary-btn" onClick={() => void onEnableNotifications()}>
+            <BellRing size={17} /> Activer
+          </button>
+        )}
       </div>
 
       <div className="settings-card panel rise" style={cascade(2, 60)}>

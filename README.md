@@ -13,7 +13,11 @@ PWA React + Vite pour suivre ses abonnements, ses renouvellements et ses dépens
 - Renouvellement automatique.
 - Rappels configurables à J-30, J-14, J-7, J-3, J-1 ou le jour J.
 - Analyse des dépenses par catégorie, coût moyen et abonnement le plus cher.
-- Authentification email/mot de passe et récupération de mot de passe via Supabase Auth.
+- Vue calendrier : toutes les dates de paiement du mois (passé et futur), total à payer, détail du jour.
+- Authentification par e-mail + mot de passe (10 caractères, lettre et chiffre), **lien magique** sans mot de passe, et récupération de mot de passe via Supabase Auth.
+- Pièces jointes (facture, contrat) par abonnement : PDF/images de 5 Mo maximum dans un stockage privé.
+- Notifications push réelles (application fermée) via une Edge Function planifiée — voir [`docs/PUSH.md`](docs/PUSH.md).
+- Fonctionne hors ligne : copie locale des données, modifications mises en file puis envoyées au retour du réseau.
 - Thème sombre / clair.
 - Données métier stockées dans Supabase avec Row Level Security.
 - Export et import JSON.
@@ -24,9 +28,10 @@ PWA React + Vite pour suivre ses abonnements, ses renouvellements et ses dépens
 
 Le code est séparé par responsabilité :
 
-- `src/domain` : calculs purs et testables.
+- `src/domain` : calculs purs et testables (dont `calendar`, `password`, `attachments`).
 - `src/hooks` : orchestration Auth, données Supabase, PWA et notifications.
-- `src/lib` : accès Supabase.
+- `src/lib` : accès Supabase, copie locale et file d'écritures hors ligne (`offline`, `syncQueue`), push.
+- `supabase/` : migrations SQL, configuration Auth et Edge Function `send-reminders`.
 - `src/components` : composants UI réutilisables.
 - `src/views` : écrans de l'application.
 - `src/App.tsx` : composition et navigation uniquement.
@@ -65,6 +70,21 @@ URL :
 ## Notifications
 
 Les notifications Web nécessitent l'autorisation du navigateur et sont vérifiées lorsque l'application est ouverte ou redevient active. GitHub Pages étant un hébergement statique, des notifications push garanties quand l'application est complètement fermée nécessiteraient un service push/backend supplémentaire.
+
+## Qualité
+
+```bash
+npm run check   # lint (ESLint + a11y) + typage + format (Prettier) + tests unitaires
+npm run test:e2e
+```
+
+La CI (`.github/workflows/ci.yml`) exécute la même chose plus les tests E2E (dont un audit d'accessibilité
+axe sur chaque écran, thèmes clair et sombre) **avant tout déploiement**.
+
+## Documentation
+
+- [`docs/PUSH.md`](docs/PUSH.md) — mise en route des notifications push (VAPID, Edge Function, pg_cron).
+- [`docs/SECURITY.md`](docs/SECURITY.md) — réglages de sécurité Supabase à vérifier, RLS, limites connues.
 
 ## Tests
 

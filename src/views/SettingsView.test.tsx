@@ -9,7 +9,9 @@ const setup = (overrides: Partial<React.ComponentProps<typeof SettingsView>> = {
     email: 'moi@exemple.fr',
     providerCount: 8,
     installAvailable: false,
+    pushActive: false,
     onEnableNotifications: vi.fn(async () => {}),
+    onDisableNotifications: vi.fn(async () => {}),
     onToggleTheme: vi.fn(),
     onInstall: vi.fn(),
     onExport: vi.fn(),
@@ -52,6 +54,24 @@ describe('SettingsView', () => {
     setup({ settings: { theme: 'light', remindersEnabled: true } })
     expect(screen.getByRole('button', { name: /Activés/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Mode sombre' })).toBeInTheDocument()
+  })
+
+  it('désactive les notifications depuis le bouton « Activés »', async () => {
+    const props = setup({ settings: { theme: 'dark', remindersEnabled: true } })
+    await userEvent.click(screen.getByRole('button', { name: /Désactiver/ }))
+    expect(props.onDisableNotifications).toHaveBeenCalledOnce()
+  })
+
+  it('explique la différence entre push serveur et notifications locales', () => {
+    const { unmount } = render(<div />)
+    unmount()
+    setup({ settings: { theme: 'dark', remindersEnabled: true }, pushActive: true })
+    expect(screen.getByText(/même application fermée/)).toBeInTheDocument()
+  })
+
+  it('prévient quand seules les notifications locales sont possibles', () => {
+    setup({ settings: { theme: 'dark', remindersEnabled: true }, pushActive: false })
+    expect(screen.getByText(/tant que Subly est ouvert/)).toBeInTheDocument()
   })
 
   it('active les notifications', async () => {

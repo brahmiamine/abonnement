@@ -16,6 +16,7 @@ import { useAppData } from './hooks/useAppData'
 import { useHashView } from './hooks/useHashView'
 import { useAuth } from './hooks/useAuth'
 import { useNotifications } from './hooks/useNotifications'
+import { usePush } from './hooks/usePush'
 import { usePwaInstall } from './hooks/usePwaInstall'
 import type { Provider, Subscription, SubscriptionDraft } from './types'
 import { downloadJson } from './utils/backup'
@@ -46,7 +47,10 @@ function App() {
   const [editing, setEditing] = useState<Subscription | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
-  useNotifications(data.subscriptions, data.settings.remindersEnabled)
+  const push = usePush(auth.session?.user.id)
+
+  // Avec le push serveur, les notifications locales feraient doublon.
+  useNotifications(data.subscriptions, data.settings.remindersEnabled && !push.active)
 
   const summary = useMemo(() => expenseSummary(data.subscriptions), [data.subscriptions])
 
@@ -101,10 +105,14 @@ function App() {
     if (!('Notification' in window)) return
 
     const permission = await Notification.requestPermission()
-    data.setSettings((current) => ({
-      ...current,
-      remindersEnabled: permission === 'granted',
-    }))
+    const granted = permission === 'granted'
+    if (granted) await push.enable()
+    data.setSettings((current) => ({ ...current, remindersEnabled: granted }))
+  }
+
+  const disableNotifications = async () => {
+    await push.disable()
+    data.setSettings((current) => ({ ...current, remindersEnabled: false }))
   }
 
   const toggleTheme = () => {
@@ -226,7 +234,9 @@ function App() {
                     email={auth.session.user.email}
                     providerCount={data.providers.length}
                     installAvailable={pwa.installAvailable}
+                    pushActive={push.active}
                     onEnableNotifications={requestNotifications}
+                    onDisableNotifications={disableNotifications}
                     onToggleTheme={toggleTheme}
                     onInstall={() => void pwa.install()}
                     onExport={exportData}
