@@ -25,6 +25,9 @@ const HomeView = lazy(() => import('./views/HomeView').then((m) => ({ default: m
 const SubscriptionsView = lazy(() =>
   import('./views/SubscriptionsView').then((m) => ({ default: m.SubscriptionsView })),
 )
+const CalendarView = lazy(() =>
+  import('./views/CalendarView').then((m) => ({ default: m.CalendarView })),
+)
 const ExpensesView = lazy(() =>
   import('./views/ExpensesView').then((m) => ({ default: m.ExpensesView })),
 )
@@ -202,7 +205,16 @@ function App() {
                     subscriptions={data.subscriptions}
                     onAdd={openAdd}
                     onEdit={openEdit}
+                    onCalendar={() => setView('calendar')}
                     onDelete={(subscription) => void deleteSubscription(subscription)}
+                  />
+                )}
+
+                {view === 'calendar' && (
+                  <CalendarView
+                    subscriptions={data.subscriptions}
+                    onEdit={openEdit}
+                    onList={() => setView('subscriptions')}
                   />
                 )}
 

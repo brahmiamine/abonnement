@@ -46,3 +46,9 @@ describe('navTabFor', () => {
     expect(navTabFor('expenses')).toBe('expenses')
   })
 })
+
+describe('navTabFor — calendrier', () => {
+  it('garde l’onglet Abonnements actif sur le calendrier', () => {
+    expect(navTabFor('calendar')).toBe('subscriptions')
+  })
+})

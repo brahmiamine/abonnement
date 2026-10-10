@@ -74,6 +74,17 @@ export const advanceRenewalDate = (date: string, cycle: BillingCycle) => {
   return toIsoDate(value)
 }
 
+/**
+ * Date de renouvellement décalée de `steps` périodes (négatif = passé) depuis une ancre.
+ * Calculée depuis l'ancre (et non de proche en proche) pour ne pas « perdre » le 31 d'un mois court.
+ */
+export const shiftRenewalDate = (anchor: string, cycle: BillingCycle, steps: number) => {
+  const value = parseDate(anchor)
+  if (cycle === 'weekly') value.setDate(value.getDate() + 7 * steps)
+  else addCalendarMonths(value, { monthly: 1, quarterly: 3, yearly: 12 }[cycle] * steps)
+  return toIsoDate(value)
+}
+
 export const rollAutoRenewalForward = (item: Subscription, now = new Date()) => {
   if (!item.autoRenew || item.status === 'paused') return item
 

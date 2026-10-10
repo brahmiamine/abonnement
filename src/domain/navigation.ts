@@ -1,6 +1,13 @@
 import type { View } from '../types'
 
-export const VIEWS: View[] = ['home', 'subscriptions', 'expenses', 'settings', 'providers']
+export const VIEWS: View[] = [
+  'home',
+  'subscriptions',
+  'calendar',
+  'expenses',
+  'settings',
+  'providers',
+]
 
 export const DEFAULT_VIEW: View = 'home'
 
@@ -15,4 +22,5 @@ export function viewFromHash(hash: string): View {
 export const hashFromView = (view: View) => `#/${view}`
 
 /** Onglet de navigation à mettre en surbrillance pour une vue donnée. */
-export const navTabFor = (view: View): View => (view === 'providers' ? 'settings' : view)
+export const navTabFor = (view: View): View =>
+  view === 'providers' ? 'settings' : view === 'calendar' ? 'subscriptions' : view

@@ -1,4 +1,5 @@
 import {
+  CalendarDays,
   CircleDollarSign,
   Home,
   Settings as SettingsIcon,
@@ -12,6 +13,7 @@ import { CountUp } from '../common/CountUp'
 const ITEMS = [
   { view: 'home', label: 'Vue d’ensemble', Icon: Home },
   { view: 'subscriptions', label: 'Abonnements', Icon: WalletCards },
+  { view: 'calendar', label: 'Calendrier', Icon: CalendarDays },
   { view: 'expenses', label: 'Dépenses', Icon: CircleDollarSign },
   { view: 'settings', label: 'Réglages', Icon: SettingsIcon },
 ] as const

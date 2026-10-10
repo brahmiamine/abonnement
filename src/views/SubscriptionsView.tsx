@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { CalendarDays, Search, SlidersHorizontal } from 'lucide-react'
 import { daysUntil, toMonthly } from '../domain/subscriptions'
 import type { Subscription, SubscriptionFilter } from '../types'
 import { EmptyState } from '../components/common/EmptyState'
@@ -9,11 +9,13 @@ export function SubscriptionsView({
   subscriptions,
   onAdd,
   onEdit,
+  onCalendar,
   onDelete,
 }: {
   subscriptions: Subscription[]
   onAdd: () => void
   onEdit: (subscription: Subscription) => void
+  onCalendar: () => void
   onDelete: (subscription: Subscription) => void
 }) {
   const [query, setQuery] = useState('')
@@ -69,6 +71,9 @@ export function SubscriptionsView({
               {label}
             </button>
           ))}
+          <button className="calendar-link" onClick={onCalendar}>
+            <CalendarDays size={15} /> Calendrier
+          </button>
         </div>
       </div>
 

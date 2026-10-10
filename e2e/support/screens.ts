@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 export const SCREENS = [
   { hash: 'home', heading: 'Mes abonnements' },
   { hash: 'subscriptions', heading: 'Tous les abonnements' },
+  { hash: 'calendar', heading: 'Calendrier' },
   { hash: 'expenses', heading: 'Dépenses' },
   { hash: 'settings', heading: 'Réglages' },
   { hash: 'providers', heading: 'Fournisseurs' },

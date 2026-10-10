@@ -15,7 +15,7 @@ export const ProviderLogo = memo(function ProviderLogo({
 }: {
   name: string
   logo?: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
 }) {
   const [failed, setFailed] = useState(!logo)
 

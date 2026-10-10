@@ -4,6 +4,7 @@ import type { Settings, SyncState, View } from '../../types'
 const titles: Record<View, string> = {
   home: 'Mes abonnements',
   subscriptions: 'Tous les abonnements',
+  calendar: 'Calendrier',
   expenses: 'Dépenses',
   settings: 'Réglages',
   providers: 'Fournisseurs',
