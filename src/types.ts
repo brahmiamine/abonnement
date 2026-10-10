@@ -53,4 +53,4 @@ export type Settings = {
 
 export type View = 'home' | 'subscriptions' | 'expenses' | 'settings' | 'providers'
 export type SubscriptionFilter = 'all' | 'soon' | 'trial' | 'expensive'
-export type SyncState = 'idle' | 'syncing' | 'error'
+export type SyncState = 'idle' | 'syncing' | 'error' | 'offline'

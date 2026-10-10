@@ -25,7 +25,9 @@ export function AuthScreen() {
       } else if (mode === 'forgot') {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: APP_URL })
         if (error) throw error
-        setMessage('Lien envoyé. Consulte ton e-mail puis ouvre le lien pour choisir un nouveau mot de passe.')
+        setMessage(
+          'Lien envoyé. Consulte ton e-mail puis ouvre le lien pour choisir un nouveau mot de passe.',
+        )
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -34,7 +36,9 @@ export function AuthScreen() {
         })
         if (error) throw error
         if (!data.session) {
-          setMessage('Compte créé. Vérifie ton e-mail pour confirmer ton inscription, puis reconnecte-toi.')
+          setMessage(
+            'Compte créé. Vérifie ton e-mail pour confirmer ton inscription, puis reconnecte-toi.',
+          )
         }
       }
     } catch (value) {
@@ -58,7 +62,13 @@ export function AuthScreen() {
 
         <div className="auth-body" key={mode}>
           <span className="eyebrow">Tes abonnements, partout avec toi</span>
-          <h1>{mode === 'login' ? 'Connexion' : mode === 'signup' ? 'Créer mon compte' : 'Mot de passe oublié'}</h1>
+          <h1>
+            {mode === 'login'
+              ? 'Connexion'
+              : mode === 'signup'
+                ? 'Créer mon compte'
+                : 'Mot de passe oublié'}
+          </h1>
           <p className="auth-copy">
             {mode === 'forgot'
               ? 'Indique ton adresse e-mail. Nous t’enverrons un lien sécurisé pour définir un nouveau mot de passe.'
@@ -67,10 +77,11 @@ export function AuthScreen() {
 
           <form onSubmit={submit}>
             <div className="field">
-              <label>Adresse e-mail</label>
+              <label htmlFor="auth-email">Adresse e-mail</label>
               <div className="auth-input">
                 <Mail size={18} />
                 <input
+                  id="auth-email"
                   type="email"
                   required
                   autoComplete="email"
@@ -84,7 +95,7 @@ export function AuthScreen() {
             {mode !== 'forgot' && (
               <div className="field">
                 <div className="field-label-row">
-                  <label>Mot de passe</label>
+                  <label htmlFor="auth-password">Mot de passe</label>
                   {mode === 'login' && (
                     <button
                       type="button"
@@ -104,6 +115,7 @@ export function AuthScreen() {
                 <div className="auth-input password-input">
                   <LockKeyhole size={18} />
                   <input
+                    id="auth-password"
                     type={showPassword ? 'text' : 'password'}
                     minLength={passwordMinLength}
                     required
@@ -116,7 +128,9 @@ export function AuthScreen() {
                     type="button"
                     className="password-toggle"
                     onClick={() => setShowPassword((visible) => !visible)}
-                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    aria-label={
+                      showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
+                    }
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -127,13 +141,15 @@ export function AuthScreen() {
             {message && <div className="auth-message">{message}</div>}
 
             <button className="primary-btn auth-submit" disabled={loading}>
-              {loading
-                ? <RefreshCw size={18} className="spin" />
-                : mode === 'login'
-                  ? <LockKeyhole size={18} />
-                  : mode === 'signup'
-                    ? <UserPlus size={18} />
-                    : <Mail size={18} />}
+              {loading ? (
+                <RefreshCw size={18} className="spin" />
+              ) : mode === 'login' ? (
+                <LockKeyhole size={18} />
+              ) : mode === 'signup' ? (
+                <UserPlus size={18} />
+              ) : (
+                <Mail size={18} />
+              )}
               {loading
                 ? 'Chargement…'
                 : mode === 'login'

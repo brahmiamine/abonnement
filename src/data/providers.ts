@@ -46,7 +46,10 @@ export const EXTRA_PROVIDERS: Provider[] = [
 ]
 
 const normalize = (value: string) =>
-  value.toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '')
+  value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[^a-z0-9]/g, '')
 
 /**
  * Retourne les fournisseurs additionnels à insérer : ni déjà présents (par id
@@ -64,8 +67,6 @@ export function missingExtraProviders(
 
   return extras.filter(
     (provider) =>
-      !seeded.has(provider.id) &&
-      !ids.has(provider.id) &&
-      !names.has(normalize(provider.name)),
+      !seeded.has(provider.id) && !ids.has(provider.id) && !names.has(normalize(provider.name)),
   )
 }

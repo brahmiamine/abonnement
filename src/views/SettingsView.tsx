@@ -48,10 +48,15 @@ export function SettingsView({
   return (
     <section className="settings-view">
       <div className="settings-card panel rise" style={cascade(0, 60)}>
-        <div className="settings-icon"><Store size={21} /></div>
+        <div className="settings-icon">
+          <Store size={21} />
+        </div>
         <div className="settings-copy">
           <h3>Fournisseurs</h3>
-          <p>{providerCount} fournisseur{providerCount > 1 ? 's' : ''} dans ton catalogue : ajoute, modifie ou supprime-les et leurs logos.</p>
+          <p>
+            {providerCount} fournisseur{providerCount > 1 ? 's' : ''} dans ton catalogue : ajoute,
+            modifie ou supprime-les et leurs logos.
+          </p>
         </div>
         <button className="secondary-btn" onClick={onOpenProviders}>
           Gérer <ChevronRight size={17} />
@@ -59,18 +64,29 @@ export function SettingsView({
       </div>
 
       <div className="settings-card panel rise" style={cascade(1, 60)}>
-        <div className="settings-icon"><Bell size={21} /></div>
+        <div className="settings-icon">
+          <Bell size={21} />
+        </div>
         <div className="settings-copy">
           <h3>Rappels de renouvellement</h3>
-          <p>Affiche une notification quand une échéance approche, selon les délais choisis pour chaque abonnement.</p>
+          <p>
+            Affiche une notification quand une échéance approche, selon les délais choisis pour
+            chaque abonnement.
+          </p>
         </div>
         <button
           className={settings.remindersEnabled ? 'secondary-btn success-btn' : 'primary-btn'}
           onClick={() => void onEnableNotifications()}
         >
-          {settings.remindersEnabled
-            ? <><Check size={17} /> Activés</>
-            : <><BellRing size={17} /> Activer</>}
+          {settings.remindersEnabled ? (
+            <>
+              <Check size={17} /> Activés
+            </>
+          ) : (
+            <>
+              <BellRing size={17} /> Activer
+            </>
+          )}
         </button>
       </div>
 
@@ -91,24 +107,36 @@ export function SettingsView({
 
       {installAvailable && (
         <div className="settings-card panel rise" style={cascade(3, 60)}>
-          <div className="settings-icon"><Download size={21} /></div>
+          <div className="settings-icon">
+            <Download size={21} />
+          </div>
           <div className="settings-copy">
             <h3>Installer Subly</h3>
-            <p>Ajoute l’application à l’écran d’accueil pour l’utiliser comme une vraie application.</p>
+            <p>
+              Ajoute l’application à l’écran d’accueil pour l’utiliser comme une vraie application.
+            </p>
           </div>
-          <button className="primary-btn" onClick={onInstall}><Download size={17} /> Installer</button>
+          <button className="primary-btn" onClick={onInstall}>
+            <Download size={17} /> Installer
+          </button>
         </div>
       )}
 
       <div className="settings-card panel rise" style={cascade(4, 60)}>
-        <div className="settings-icon"><Download size={21} /></div>
+        <div className="settings-icon">
+          <Download size={21} />
+        </div>
         <div className="settings-copy">
           <h3>Export / import</h3>
           <p>Les données restent dans Supabase ; tu peux aussi créer une copie JSON portable.</p>
         </div>
         <div className="settings-actions">
-          <button className="secondary-btn" onClick={onExport}><Download size={17} /> Exporter</button>
-          <button className="secondary-btn" onClick={() => importRef.current?.click()}><Upload size={17} /> Importer</button>
+          <button className="secondary-btn" onClick={onExport}>
+            <Download size={17} /> Exporter
+          </button>
+          <button className="secondary-btn" onClick={() => importRef.current?.click()}>
+            <Upload size={17} /> Importer
+          </button>
           <input
             ref={importRef}
             hidden
@@ -120,7 +148,9 @@ export function SettingsView({
       </div>
 
       <div className="settings-card panel rise" style={cascade(5, 60)}>
-        <div className="settings-icon"><Cloud size={21} /></div>
+        <div className="settings-icon">
+          <Cloud size={21} />
+        </div>
         <div className="settings-copy">
           <h3>Compte & synchronisation</h3>
           <p>{email} · données sauvegardées dans Supabase.</p>
@@ -131,10 +161,15 @@ export function SettingsView({
       </div>
 
       <div className="settings-card panel danger-zone rise" style={cascade(6, 60)}>
-        <div className="settings-icon"><Trash2 size={21} /></div>
+        <div className="settings-icon">
+          <Trash2 size={21} />
+        </div>
         <div className="settings-copy">
           <h3>Effacer les abonnements</h3>
-          <p>Supprime définitivement tous tes abonnements de Supabase. Les fournisseurs sont conservés.</p>
+          <p>
+            Supprime définitivement tous tes abonnements de Supabase. Les fournisseurs sont
+            conservés.
+          </p>
         </div>
         <button className="secondary-btn danger-btn" onClick={() => void onClearSubscriptions()}>
           <Trash2 size={17} /> Effacer

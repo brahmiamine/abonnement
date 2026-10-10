@@ -11,7 +11,10 @@ describe('dépenses : cas limites', () => {
   })
 
   it('exclut les abonnements en pause', () => {
-    const items = [subscription({ price: 10 }), subscription({ id: 'b', price: 99, status: 'paused' })]
+    const items = [
+      subscription({ price: 10 }),
+      subscription({ id: 'b', price: 99, status: 'paused' }),
+    ]
     expect(expenseSummary(items).monthly).toBe(10)
     expect(expensesByCategory(items)).toEqual([['Streaming', 10]])
   })
@@ -26,6 +29,9 @@ describe('dépenses : cas limites', () => {
       subscription({ id: 'b', category: 'IA', price: 20 }),
       subscription({ id: 'c', category: 'Cloud', price: 3 }),
     ])
-    expect(result).toEqual([['IA', 20], ['Cloud', 5]])
+    expect(result).toEqual([
+      ['IA', 20],
+      ['Cloud', 5],
+    ])
   })
 })

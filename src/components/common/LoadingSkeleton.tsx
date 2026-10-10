@@ -7,7 +7,9 @@ export function LoadingSkeleton() {
   return (
     <div className="skeleton" role="status" aria-label="Synchronisation avec Supabase…">
       <div className="metrics-grid">
-        {ROWS.map((row) => <div key={row} className="skeleton-block skeleton-metric" />)}
+        {ROWS.map((row) => (
+          <div key={row} className="skeleton-block skeleton-metric" />
+        ))}
       </div>
       <div className="dashboard-grid">
         <div className="panel skeleton-list">

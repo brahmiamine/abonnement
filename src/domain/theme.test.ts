@@ -23,8 +23,12 @@ describe('thème', () => {
 
   it('ne plante pas quand le stockage lève une exception', () => {
     const broken = {
-      getItem: vi.fn(() => { throw new Error('denied') }),
-      setItem: vi.fn(() => { throw new Error('denied') }),
+      getItem: vi.fn(() => {
+        throw new Error('denied')
+      }),
+      setItem: vi.fn(() => {
+        throw new Error('denied')
+      }),
     }
     expect(readStoredTheme(broken)).toBeNull()
     expect(() => storeTheme('dark', broken)).not.toThrow()

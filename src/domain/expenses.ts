@@ -7,7 +7,9 @@ export const expenseSummary = (items: Subscription[]) => {
   const annual = active.reduce((sum, item) => sum + toAnnual(item.price, item.cycle), 0)
   const mostExpensive = active.reduce<Subscription | undefined>((current, item) => {
     if (!current) return item
-    return toMonthly(item.price, item.cycle) > toMonthly(current.price, current.cycle) ? item : current
+    return toMonthly(item.price, item.cycle) > toMonthly(current.price, current.cycle)
+      ? item
+      : current
   }, undefined)
 
   return {

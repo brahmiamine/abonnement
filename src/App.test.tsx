@@ -7,6 +7,7 @@ const state = vi.hoisted(() => ({
   session: { user: { id: 'u1', email: 'moi@exemple.fr' } } as unknown,
   settings: null as null | { theme: 'dark' | 'light'; remindersEnabled: boolean },
   savedSettings: [] as Array<{ theme: string }>,
+  failLoad: false,
 }))
 
 vi.mock('./hooks/useAuth', () => ({
@@ -30,9 +31,14 @@ vi.mock('./lib/providersDb', () => ({
 }))
 
 vi.mock('./lib/subscriptionsDb', () => ({
-  loadSubscriptions: async () => [subscription({ id: 'a', name: 'Netflix', renewalDate: '2099-01-01' })],
+  loadSubscriptions: async () => {
+    if (state.failLoad) throw new TypeError('Failed to fetch')
+    return [subscription({ id: 'a', name: 'Netflix', renewalDate: '2099-01-01' })]
+  },
   loadUserSettings: async () => state.settings,
-  saveUserSettings: vi.fn(async (settings: { theme: string }) => { state.savedSettings.push(settings) }),
+  saveUserSettings: vi.fn(async (settings: { theme: string }) => {
+    state.savedSettings.push(settings)
+  }),
   upsertSubscription: vi.fn(async () => {}),
   upsertSubscriptions: vi.fn(async () => {}),
   removeSubscription: vi.fn(async () => {}),
@@ -44,13 +50,17 @@ vi.mock('./lib/supabase', () => ({ supabase: {} }))
 const { default: App } = await import('./App')
 
 const ready = async () => {
-  await screen.findByRole('heading', { level: 1, name: /Mes abonnements|Tous|Dépenses|Réglages|Fournisseurs/ })
+  await screen.findByRole('heading', {
+    level: 1,
+    name: /Mes abonnements|Tous|Dépenses|Réglages|Fournisseurs/,
+  })
 }
 
 beforeEach(() => {
   state.session = { user: { id: 'u1', email: 'moi@exemple.fr' } }
   state.settings = null
   state.savedSettings = []
+  state.failLoad = false
 })
 
 describe('App — intégration', () => {
@@ -88,9 +98,11 @@ describe('App — intégration', () => {
     render(<App />)
     await screen.findByRole('heading', { level: 1, name: 'Réglages' })
     await userEvent.click(screen.getByRole('button', { name: /Gérer/ }))
-    expect(await screen.findByRole('heading', { level: 1, name: 'Fournisseurs' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Fournisseurs' }),
+    ).toBeInTheDocument()
     expect(window.location.hash).toBe('#/providers')
-    expect(screen.getByText('Free Mobile')).toBeInTheDocument()
+    expect(await screen.findByText('Free Mobile')).toBeInTheDocument()
     await userEvent.click(document.querySelector('.back-link') as HTMLElement)
     expect(await screen.findByRole('heading', { level: 1, name: 'Réglages' })).toBeInTheDocument()
   })
@@ -141,8 +153,38 @@ describe('App — intégration', () => {
     await screen.findByRole('heading', { level: 1, name: 'Tous les abonnements' })
     expect(screen.getByRole('heading', { name: 'Netflix' })).toBeInTheDocument()
     await userEvent.click(screen.getAllByRole('button', { name: /Ajouter/ })[0])
-    const dialog = await screen.findByRole('dialog', { name: 'Abonnement' })
+    const dialog = await screen.findByRole('dialog', { name: /abonnement/i })
     await userEvent.type(within(dialog).getByPlaceholderText(/Netflix, Claude/), 'Free')
     expect(within(dialog).getByText('Free Mobile')).toBeInTheDocument()
+  })
+
+  it('ouvre la copie locale et propose de réessayer quand le réseau est coupé', async () => {
+    const { writeSnapshot } = await import('./lib/offline')
+    writeSnapshot('u1', {
+      subscriptions: [subscription({ id: 'a', name: 'Netflix', renewalDate: '2099-01-01' })],
+      providers: [provider()],
+      categories: ['Streaming'],
+      settings: { theme: 'dark', remindersEnabled: false },
+    })
+    state.failLoad = true
+
+    render(<App />)
+    expect(
+      await screen.findByText(/Hors ligne : tes données restent consultables/),
+    ).toBeInTheDocument()
+    expect(screen.getAllByText('Netflix').length).toBeGreaterThan(0)
+
+    state.failLoad = false
+    await userEvent.click(screen.getByRole('button', { name: /Réessayer/ }))
+    await waitFor(() =>
+      expect(screen.queryByText(/Hors ligne : tes données/)).not.toBeInTheDocument(),
+    )
+  })
+
+  it('affiche une erreur avec « Réessayer » quand rien n’est disponible hors ligne', async () => {
+    state.failLoad = true
+    render(<App />)
+    expect(await screen.findByText(/La synchronisation a échoué/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Réessayer/ })).toBeInTheDocument()
   })
 })

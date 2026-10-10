@@ -1,4 +1,4 @@
-import { Cloud, Download, Moon, Plus, RefreshCw, Sun } from 'lucide-react'
+import { Cloud, CloudOff, Download, Moon, Plus, RefreshCw, Sun } from 'lucide-react'
 import type { Settings, SyncState, View } from '../../types'
 
 const titles: Record<View, string> = {
@@ -39,14 +39,20 @@ export function Topbar({
 
       <div className="top-actions">
         <span className={`sync-pill ${syncState}`}>
-          {syncState === 'syncing'
-            ? <RefreshCw size={14} className="spin" />
-            : <Cloud size={14} />}
+          {syncState === 'syncing' ? (
+            <RefreshCw size={14} className="spin" />
+          ) : syncState === 'offline' ? (
+            <CloudOff size={14} />
+          ) : (
+            <Cloud size={14} />
+          )}
           {syncState === 'syncing'
             ? 'Synchro…'
             : syncState === 'error'
               ? 'Erreur de synchro'
-              : 'Synchronisé'}
+              : syncState === 'offline'
+                ? 'Hors ligne'
+                : 'Synchronisé'}
         </span>
 
         {installAvailable && (
@@ -55,7 +61,11 @@ export function Topbar({
           </button>
         )}
 
-        <button className="icon-btn theme-btn" onClick={onToggleTheme} aria-label="Changer de thème">
+        <button
+          className="icon-btn theme-btn"
+          onClick={onToggleTheme}
+          aria-label="Changer de thème"
+        >
           <span className={`theme-icon ${settings.theme}`}>
             {settings.theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
           </span>

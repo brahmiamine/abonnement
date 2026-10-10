@@ -25,7 +25,11 @@ export const toAnnual = (price: number, cycle: BillingCycle) => toMonthly(price,
 
 export const daysUntil = (date: string, now = new Date()) => {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-  const target = new Date(parseDate(date).getFullYear(), parseDate(date).getMonth(), parseDate(date).getDate()).getTime()
+  const target = new Date(
+    parseDate(date).getFullYear(),
+    parseDate(date).getMonth(),
+    parseDate(date).getDate(),
+  ).getTime()
   return Math.ceil((target - today) / DAY)
 }
 
@@ -33,7 +37,9 @@ export const formatMoney = (value: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value)
 
 export const formatDate = (date: string) =>
-  new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).format(parseDate(date))
+  new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).format(
+    parseDate(date),
+  )
 
 export const cycleLabel = (cycle: BillingCycle) =>
   ({ weekly: 'semaine', monthly: 'mois', quarterly: 'trimestre', yearly: 'an' })[cycle]

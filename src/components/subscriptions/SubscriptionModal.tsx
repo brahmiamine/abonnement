@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Check, ChevronRight, Plus, RefreshCw, Search, X } from 'lucide-react'
 import { isoToday } from '../../config'
 import { customLogo } from '../../data/providers'
 import { advanceRenewalDate } from '../../domain/subscriptions'
+import { useDialog } from '../../hooks/useDialog'
 import { useExitAnimation } from '../../hooks/useExitAnimation'
 import type {
   BillingCycle,
@@ -57,7 +58,7 @@ export function SubscriptionModal({
           cycle: initial.cycle,
           startDate: initial.startDate,
           renewalDate: initial.renewalDate,
-          expirationDate: initial.autoRenew ? '' : (initial.expirationDate || initial.renewalDate),
+          expirationDate: initial.autoRenew ? '' : initial.expirationDate || initial.renewalDate,
           status: initial.status,
           autoRenew: initial.autoRenew,
           remindDays: initial.remindDays,
@@ -71,6 +72,9 @@ export function SubscriptionModal({
   const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const [closing, close] = useExitAnimation(onClose)
+  const dialogRef = useDialog<HTMLDivElement>(close)
+  const uid = useId()
+  const id = (name: string) => `${uid}-${name}`
 
   useEffect(() => inputRef.current?.focus(), [])
 
@@ -142,30 +146,39 @@ export function SubscriptionModal({
   )
 
   return (
-    <div className={`modal-backdrop ${closing ? 'is-closing' : ''}`} role="presentation" onMouseDown={close}>
+    <div
+      className={`modal-backdrop ${closing ? 'is-closing' : ''}`}
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) close()
+      }}
+    >
       <div
+        ref={dialogRef}
         className="modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Abonnement"
-        onMouseDown={(event) => event.stopPropagation()}
+        aria-labelledby={id('title')}
       >
         <div className="modal-header">
           <span className="sheet-handle" aria-hidden="true" />
           <div>
             <span className="eyebrow">{initial ? 'Modification' : 'Nouvel abonnement'}</span>
-            <h2>{initial ? 'Modifier l’abonnement' : 'Ajouter un abonnement'}</h2>
+            <h2 id={id('title')}>{initial ? 'Modifier l’abonnement' : 'Ajouter un abonnement'}</h2>
           </div>
-          <button type="button" className="icon-btn close-btn" onClick={close} aria-label="Fermer"><X size={20} /></button>
+          <button type="button" className="icon-btn close-btn" onClick={close} aria-label="Fermer">
+            <X size={20} />
+          </button>
         </div>
 
         <form onSubmit={submit} className="subscription-form">
           <div className="field provider-field">
-            <label>Fournisseur</label>
+            <label htmlFor={id('provider')}>Fournisseur</label>
             <div className="search-input">
               <Search size={18} />
               <input
                 ref={inputRef}
+                id={id('provider')}
                 value={providerQuery}
                 placeholder="Netflix, Claude, RED by SFR…"
                 onFocus={() => setShowProviders(true)}
@@ -188,14 +201,22 @@ export function SubscriptionModal({
                 {matches.map((provider) => (
                   <button type="button" key={provider.id} onClick={() => chooseProvider(provider)}>
                     <ProviderLogo name={provider.name} logo={provider.logo} size="sm" />
-                    <span><strong>{provider.name}</strong><small>{provider.category}</small></span>
+                    <span>
+                      <strong>{provider.name}</strong>
+                      <small>{provider.category}</small>
+                    </span>
                     <ChevronRight size={16} />
                   </button>
                 ))}
                 {providerQuery.trim() && !hasExactProvider && (
                   <button type="button" className="custom-provider" onClick={useCustomProvider}>
-                    <span className="custom-provider-plus"><Plus size={16} /></span>
-                    <span><strong>Utiliser “{providerQuery.trim()}”</strong><small>Fournisseur personnalisé</small></span>
+                    <span className="custom-provider-plus">
+                      <Plus size={16} />
+                    </span>
+                    <span>
+                      <strong>Utiliser “{providerQuery.trim()}”</strong>
+                      <small>Fournisseur personnalisé</small>
+                    </span>
                   </button>
                 )}
               </div>
@@ -204,9 +225,10 @@ export function SubscriptionModal({
 
           <div className="form-grid two">
             <div className="field">
-              <label>Prix</label>
+              <label htmlFor={id('price')}>Prix</label>
               <div className="money-input">
                 <input
+                  id={id('price')}
                   type="number"
                   min="0"
                   step="0.01"
@@ -219,8 +241,9 @@ export function SubscriptionModal({
             </div>
 
             <div className="field">
-              <label>Facturation</label>
+              <label htmlFor={id('cycle')}>Facturation</label>
               <select
+                id={id('cycle')}
                 value={draft.cycle}
                 onChange={(event) => {
                   const cycle = event.target.value as BillingCycle
@@ -237,19 +260,23 @@ export function SubscriptionModal({
 
           <div className="form-grid two">
             <div className="field">
-              <label>Date de début</label>
+              <label htmlFor={id('start')}>Date de début</label>
               <input
+                id={id('start')}
                 type="date"
                 value={draft.startDate}
                 onChange={(event) =>
-                  setDraft((current) => syncBillingDates(current, event.target.value, current.cycle))
+                  setDraft((current) =>
+                    syncBillingDates(current, event.target.value, current.cycle),
+                  )
                 }
               />
             </div>
 
             <div className="field">
-              <label>Prochain renouvellement</label>
+              <label htmlFor={id('renewal')}>Prochain renouvellement</label>
               <input
+                id={id('renewal')}
                 type="date"
                 required
                 value={draft.renewalDate}
@@ -267,22 +294,36 @@ export function SubscriptionModal({
 
           <div className="form-grid two">
             <div className="field">
-              <label>Fin / expiration <span>calculée automatiquement</span></label>
+              <label htmlFor={id('end')}>
+                Fin / expiration <span>calculée automatiquement</span>
+              </label>
               {draft.autoRenew ? (
-                <div className="computed-date">Sans date de fin · renouvellement automatique</div>
+                <div id={id('end')} className="computed-date">
+                  Sans date de fin · renouvellement automatique
+                </div>
               ) : (
-                <input type="date" value={draft.expirationDate || draft.renewalDate} readOnly />
+                <input
+                  id={id('end')}
+                  type="date"
+                  value={draft.expirationDate || draft.renewalDate}
+                  readOnly
+                />
               )}
             </div>
 
             <div className="field">
-              <label>Catégorie</label>
+              <label htmlFor={id('category')}>Catégorie</label>
               <select
+                id={id('category')}
                 value={draft.category}
-                onChange={(event) => setDraft({ ...draft, category: event.target.value as Category })}
+                onChange={(event) =>
+                  setDraft({ ...draft, category: event.target.value as Category })
+                }
               >
                 {categories.map((category) => (
-                  <option value={category} key={category}>{category}</option>
+                  <option value={category} key={category}>
+                    {category}
+                  </option>
                 ))}
               </select>
             </div>
@@ -290,8 +331,9 @@ export function SubscriptionModal({
 
           <div className="form-grid two">
             <div className="field">
-              <label>Statut</label>
+              <label htmlFor={id('status')}>Statut</label>
               <select
+                id={id('status')}
                 value={draft.status}
                 onChange={(event) =>
                   setDraft({ ...draft, status: event.target.value as SubscriptionStatus })
@@ -304,8 +346,11 @@ export function SubscriptionModal({
             </div>
 
             <div className="field">
-              <label>Site web <span>optionnel</span></label>
+              <label htmlFor={id('website')}>
+                Site web <span>optionnel</span>
+              </label>
               <input
+                id={id('website')}
                 type="url"
                 placeholder="https://…"
                 value={draft.website || ''}
@@ -320,8 +365,10 @@ export function SubscriptionModal({
             </div>
           </div>
 
-          <div className="field">
-            <label>Me rappeler avant le renouvellement</label>
+          <div className="field" role="group" aria-labelledby={id('remind')}>
+            <span className="field-label" id={id('remind')}>
+              Me rappeler avant le renouvellement
+            </span>
             <div className="reminder-pills">
               {[30, 14, 7, 3, 1, 0].map((day) => {
                 const active = draft.remindDays.includes(day)
@@ -330,6 +377,7 @@ export function SubscriptionModal({
                     type="button"
                     key={day}
                     className={active ? 'active' : ''}
+                    aria-pressed={active}
                     onClick={() =>
                       setDraft({
                         ...draft,
@@ -368,8 +416,11 @@ export function SubscriptionModal({
           </label>
 
           <div className="field">
-            <label>Note <span>optionnel</span></label>
+            <label htmlFor={id('notes')}>
+              Note <span>optionnel</span>
+            </label>
             <textarea
+              id={id('notes')}
               rows={2}
               placeholder="Compte famille, promo, engagement…"
               value={draft.notes || ''}
@@ -380,7 +431,9 @@ export function SubscriptionModal({
           {error && <div className="auth-message">{error}</div>}
 
           <div className="modal-actions">
-            <button type="button" className="secondary-btn" onClick={close}>Annuler</button>
+            <button type="button" className="secondary-btn" onClick={close}>
+              Annuler
+            </button>
             <button type="submit" className="primary-btn" disabled={saving}>
               {saving ? <RefreshCw size={18} className="spin" /> : <Check size={18} />}
               {saving ? 'Enregistrement…' : initial ? 'Enregistrer' : 'Ajouter'}

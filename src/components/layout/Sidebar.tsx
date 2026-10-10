@@ -1,4 +1,10 @@
-import { CircleDollarSign, Home, Settings as SettingsIcon, Sparkles, WalletCards } from 'lucide-react'
+import {
+  CircleDollarSign,
+  Home,
+  Settings as SettingsIcon,
+  Sparkles,
+  WalletCards,
+} from 'lucide-react'
 import { navTabFor } from '../../domain/navigation'
 import type { View } from '../../types'
 import { CountUp } from '../common/CountUp'
@@ -57,13 +63,20 @@ export function Sidebar({
 
       <div className="sidebar-card sidebar-label">
         <Sparkles size={18} />
-        <strong><CountUp value={monthly} /></strong>
+        <strong>
+          <CountUp value={monthly} />
+        </strong>
         <span>dépenses mensuelles</span>
-        <small><CountUp value={annual} /> / an estimé</small>
+        <small>
+          <CountUp value={annual} /> / an estimé
+        </small>
       </div>
 
       <div className="sidebar-footer sidebar-label">
-        <span><i className="pulse-dot" />Données privées</span>
+        <span>
+          <i className="pulse-dot" />
+          Données privées
+        </span>
         <small>Synchronisées avec Supabase</small>
       </div>
     </aside>

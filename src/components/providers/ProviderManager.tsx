@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, Edit3, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react'
 import { customLogo } from '../../data/providers'
 import { uid } from '../../config'
+import { useDialog } from '../../hooks/useDialog'
 import { useExitAnimation } from '../../hooks/useExitAnimation'
 import type { Category, Provider } from '../../types'
 import { cascade } from '../../utils/motion'
@@ -25,8 +26,8 @@ export function ProviderManager({
 
   const filtered = useMemo(() => {
     const value = query.trim().toLowerCase()
-    return providers.filter((provider) =>
-      !value || `${provider.name} ${provider.category}`.toLowerCase().includes(value),
+    return providers.filter(
+      (provider) => !value || `${provider.name} ${provider.category}`.toLowerCase().includes(value),
     )
   }, [providers, query])
 
@@ -61,7 +62,9 @@ export function ProviderManager({
           <h2>Fournisseurs</h2>
           <p>Ajoute, modifie ou supprime les fournisseurs et leurs logos.</p>
         </div>
-        <button className="primary-btn" onClick={openNew}><Plus size={17} /> Ajouter</button>
+        <button className="primary-btn" onClick={openNew}>
+          <Plus size={17} /> Ajouter
+        </button>
       </div>
 
       <div className="search-input wide provider-search">
@@ -86,10 +89,18 @@ export function ProviderManager({
                   : ''}
               </span>
             </div>
-            <button className="icon-btn tiny" onClick={() => openEdit(provider)} aria-label={`Modifier ${provider.name}`}>
+            <button
+              className="icon-btn tiny"
+              onClick={() => openEdit(provider)}
+              aria-label={`Modifier ${provider.name}`}
+            >
               <Edit3 size={16} />
             </button>
-            <button className="icon-btn tiny danger" onClick={() => onDelete(provider)} aria-label={`Supprimer ${provider.name}`}>
+            <button
+              className="icon-btn tiny danger"
+              onClick={() => onDelete(provider)}
+              aria-label={`Supprimer ${provider.name}`}
+            >
               <Trash2 size={16} />
             </button>
           </div>
@@ -128,6 +139,9 @@ function ProviderEditor({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [closing, close] = useExitAnimation(onClose)
+  const dialogRef = useDialog<HTMLFormElement>(close)
+  const uid = useId()
+  const id = (name: string) => `${uid}-${name}`
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -151,25 +165,36 @@ function ProviderEditor({
     <div
       className={`provider-editor-backdrop ${closing ? 'is-closing' : ''}`}
       role="presentation"
-      onMouseDown={close}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) close()
+      }}
     >
       <form
+        ref={dialogRef}
         className="provider-editor modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={id('title')}
         onSubmit={submit}
-        onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
           <span className="sheet-handle" aria-hidden="true" />
           <div>
             <span className="eyebrow">{editing ? 'Modification' : 'Nouveau fournisseur'}</span>
-            <h2>{editing ? editing.name : 'Ajouter un fournisseur'}</h2>
+            <h2 id={id('title')}>{editing ? editing.name : 'Ajouter un fournisseur'}</h2>
           </div>
-          <button type="button" className="icon-btn close-btn" onClick={close} aria-label="Fermer"><X size={20} /></button>
+          <button type="button" className="icon-btn close-btn" onClick={close} aria-label="Fermer">
+            <X size={20} />
+          </button>
         </div>
 
         <div className="provider-editor-body">
           <div className="provider-preview-card">
-            <ProviderLogo name={draft.name || 'Nouveau'} logo={draft.logo || customLogo(draft.website)} size="lg" />
+            <ProviderLogo
+              name={draft.name || 'Nouveau'}
+              logo={draft.logo || customLogo(draft.website)}
+              size="lg"
+            />
             <div>
               <strong>{draft.name || 'Nom du fournisseur'}</strong>
               <span>{draft.category}</span>
@@ -177,8 +202,9 @@ function ProviderEditor({
           </div>
 
           <div className="field">
-            <label>Nom</label>
+            <label htmlFor={id('name')}>Nom</label>
             <input
+              id={id('name')}
               required
               value={draft.name}
               onChange={(event) => setDraft({ ...draft, name: event.target.value })}
@@ -187,20 +213,26 @@ function ProviderEditor({
           </div>
 
           <div className="field">
-            <label>Catégorie</label>
+            <label htmlFor={id('category')}>Catégorie</label>
             <select
+              id={id('category')}
               value={draft.category}
               onChange={(event) => setDraft({ ...draft, category: event.target.value as Category })}
             >
               {categories.map((category) => (
-                <option value={category} key={category}>{category}</option>
+                <option value={category} key={category}>
+                  {category}
+                </option>
               ))}
             </select>
           </div>
 
           <div className="field">
-            <label>Site web <span>optionnel</span></label>
+            <label htmlFor={id('website')}>
+              Site web <span>optionnel</span>
+            </label>
             <input
+              id={id('website')}
               type="url"
               value={draft.website}
               onChange={(event) => setDraft({ ...draft, website: event.target.value })}
@@ -209,20 +241,27 @@ function ProviderEditor({
           </div>
 
           <div className="field">
-            <label>URL du logo <span>optionnel</span></label>
+            <label htmlFor={id('logo')}>
+              URL du logo <span>optionnel</span>
+            </label>
             <input
+              id={id('logo')}
               type="url"
               value={draft.logo}
               onChange={(event) => setDraft({ ...draft, logo: event.target.value })}
               placeholder="https://…/logo.png"
             />
-            <small className="field-help">Si vide, Subly essaie d’utiliser automatiquement l’icône du site web.</small>
+            <small className="field-help">
+              Si vide, Subly essaie d’utiliser automatiquement l’icône du site web.
+            </small>
           </div>
 
           {error && <div className="auth-message">{error}</div>}
 
           <div className="modal-actions">
-            <button type="button" className="secondary-btn" onClick={close}>Annuler</button>
+            <button type="button" className="secondary-btn" onClick={close}>
+              Annuler
+            </button>
             <button className="primary-btn" disabled={saving}>
               {saving ? <RefreshCw size={17} className="spin" /> : <Check size={17} />}
               {saving ? 'Enregistrement…' : 'Enregistrer'}

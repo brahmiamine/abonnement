@@ -49,7 +49,9 @@ test('chaque changement de page repart en haut', async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
 })
 
-test('les fournisseurs se gèrent depuis une page dédiée accessible via les réglages', async ({ page }) => {
+test('les fournisseurs se gèrent depuis une page dédiée accessible via les réglages', async ({
+  page,
+}) => {
   await page.goto('./#/settings')
   await expect(page.getByRole('heading', { name: 'Fournisseurs', level: 3 })).toBeVisible()
   // Le catalogue n'est plus affiché directement dans les réglages
@@ -64,6 +66,9 @@ test('les fournisseurs se gèrent depuis une page dédiée accessible via les r�
   const tab = page.locator('.mobile-nav button.active:visible, .sidebar button.active:visible')
   await expect(tab).toHaveCount(1)
   await expect(tab).toContainText('Réglages')
-  await page.getByRole('button', { name: /^\s*Réglages\s*$/ }).and(page.locator('.back-link')).click()
+  await page
+    .getByRole('button', { name: /^\s*Réglages\s*$/ })
+    .and(page.locator('.back-link'))
+    .click()
   await expect(page).toHaveURL(/#\/settings$/)
 })

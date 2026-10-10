@@ -37,7 +37,8 @@ export const parseBackup = (text: string): BackupPayload => {
 
   return {
     version: 2,
-    exportedAt: typeof parsed.exportedAt === 'string' ? parsed.exportedAt : new Date().toISOString(),
+    exportedAt:
+      typeof parsed.exportedAt === 'string' ? parsed.exportedAt : new Date().toISOString(),
     subscriptions: parsed.subscriptions,
     providers: Array.isArray(parsed.providers) ? parsed.providers : [],
     settings: {

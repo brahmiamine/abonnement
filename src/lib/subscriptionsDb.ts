@@ -86,9 +86,10 @@ export async function upsertSubscription(item: Subscription, userId: string) {
 export async function upsertSubscriptions(items: Subscription[], userId: string) {
   if (!items.length) return
 
-  const { error } = await supabase
-    .from('subscriptions')
-    .upsert(items.map((item) => toRow(item, userId)), { onConflict: 'id' })
+  const { error } = await supabase.from('subscriptions').upsert(
+    items.map((item) => toRow(item, userId)),
+    { onConflict: 'id' },
+  )
 
   if (error) throw error
 }
@@ -119,11 +120,14 @@ export async function loadUserSettings(): Promise<Partial<Settings> | null> {
 }
 
 export async function saveUserSettings(settings: Settings, userId: string) {
-  const { error } = await supabase.from('subscription_settings').upsert({
-    user_id: userId,
-    theme: settings.theme,
-    reminders_enabled: settings.remindersEnabled,
-  }, { onConflict: 'user_id' })
+  const { error } = await supabase.from('subscription_settings').upsert(
+    {
+      user_id: userId,
+      theme: settings.theme,
+      reminders_enabled: settings.remindersEnabled,
+    },
+    { onConflict: 'user_id' },
+  )
 
   if (error) throw error
 }

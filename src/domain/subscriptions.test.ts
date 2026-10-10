@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Subscription } from '../types'
-import {
-  advanceRenewalDate,
-  daysUntil,
-  rollAutoRenewalForward,
-  toMonthly,
-} from './subscriptions'
+import { advanceRenewalDate, daysUntil, rollAutoRenewalForward, toMonthly } from './subscriptions'
 
 const subscription = (overrides: Partial<Subscription> = {}): Subscription => ({
   id: 'sub',

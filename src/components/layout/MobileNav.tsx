@@ -27,7 +27,9 @@ export function MobileNav({
 
   const item = ({ view: target, label, Icon }: Item) => (
     <button key={target} className={tab === target ? 'active' : ''} onClick={() => onView(target)}>
-      <span className="mobile-nav-icon"><Icon size={21} /></span>
+      <span className="mobile-nav-icon">
+        <Icon size={21} />
+      </span>
       <span className="mobile-nav-label">{label}</span>
     </button>
   )
@@ -35,7 +37,9 @@ export function MobileNav({
   return (
     <nav className="mobile-nav" aria-label="Navigation mobile">
       {LEFT.map(item)}
-      <button className="mobile-add" onClick={onAdd} aria-label="Ajouter"><Plus size={25} /></button>
+      <button className="mobile-add" onClick={onAdd} aria-label="Ajouter">
+        <Plus size={25} />
+      </button>
       {RIGHT.map(item)}
     </nav>
   )

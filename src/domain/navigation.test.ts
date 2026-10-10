@@ -15,9 +15,12 @@ describe('viewFromHash', () => {
     expect(viewFromHash('#/settings?x=1')).toBe('settings')
   })
 
-  it.each(['', '#', '#/', '#/inconnu', '#/HOME', '#/__proto__'])('retombe sur l’accueil pour %j', (hash) => {
-    expect(viewFromHash(hash)).toBe(DEFAULT_VIEW)
-  })
+  it.each(['', '#', '#/', '#/inconnu', '#/HOME', '#/__proto__'])(
+    'retombe sur l’accueil pour %j',
+    (hash) => {
+      expect(viewFromHash(hash)).toBe(DEFAULT_VIEW)
+    },
+  )
 })
 
 describe('hashFromView', () => {

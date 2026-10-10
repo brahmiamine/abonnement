@@ -101,16 +101,19 @@ export async function ensureProviders(userId: string): Promise<Provider[]> {
 }
 
 export async function saveProvider(provider: Provider, userId: string) {
-  const { error } = await supabase.from('subscription_providers').upsert({
-    user_id: userId,
-    id: provider.id,
-    name: provider.name,
-    category: provider.category,
-    logo: provider.logo || '',
-    website: provider.website || null,
-    color: provider.color || null,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'user_id,id' })
+  const { error } = await supabase.from('subscription_providers').upsert(
+    {
+      user_id: userId,
+      id: provider.id,
+      name: provider.name,
+      category: provider.category,
+      logo: provider.logo || '',
+      website: provider.website || null,
+      color: provider.color || null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id,id' },
+  )
   if (error) throw error
 }
 

@@ -20,7 +20,9 @@ export const findOverflowing = (page: Page) =>
       const style = getComputedStyle(el)
       if (style.position === 'fixed' && rect.left >= 0 && rect.right <= width) return
       if (rect.right > width + 0.5 || rect.left < -0.5) {
-        out.push(`${el.tagName.toLowerCase()}.${String(el.className).split(' ').join('.')} [${Math.round(rect.left)}→${Math.round(rect.right)}] > ${width}`)
+        out.push(
+          `${el.tagName.toLowerCase()}.${String(el.className).split(' ').join('.')} [${Math.round(rect.left)}→${Math.round(rect.right)}] > ${width}`,
+        )
       }
     })
     return out.slice(0, 15)

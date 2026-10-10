@@ -22,21 +22,54 @@ const provider = (id: string, name: string, category: string, website: string) =
 })
 
 export const CATEGORIES = [
-  'Streaming', 'Musique', 'IA', 'Cloud', 'Productivité', 'Gaming', 'Sport',
-  'Télécom', 'Assurance', 'Énergie', 'Transport', 'Fitness', 'Autre',
+  'Streaming',
+  'Musique',
+  'IA',
+  'Cloud',
+  'Productivité',
+  'Gaming',
+  'Sport',
+  'Télécom',
+  'Assurance',
+  'Énergie',
+  'Transport',
+  'Fitness',
+  'Autre',
 ]
 
-export const longName = 'Un abonnement avec un nom vraiment très très long pour tester le débordement'
+export const longName =
+  'Un abonnement avec un nom vraiment très très long pour tester le débordement'
 
 export function seedData(): Record<string, Row[]> {
   const subscription = (
-    id: string, providerId: string | null, name: string, category: string,
-    price: number, cycle: string, renewal: number, extra: Row = {},
+    id: string,
+    providerId: string | null,
+    name: string,
+    category: string,
+    price: number,
+    cycle: string,
+    renewal: number,
+    extra: Row = {},
   ) => ({
-    id, user_id: USER.id, provider_id: providerId, name, logo: '', website: null, category,
-    price, currency: 'EUR', cycle, start_date: day(-60), renewal_date: day(renewal),
-    expiration_date: null, status: 'active', auto_renew: true, remind_days: [7, 3, 1],
-    notes: null, created_at: '2026-01-01T00:00:00Z', ...extra,
+    id,
+    user_id: USER.id,
+    provider_id: providerId,
+    name,
+    logo: '',
+    website: null,
+    category,
+    price,
+    currency: 'EUR',
+    cycle,
+    start_date: day(-60),
+    renewal_date: day(renewal),
+    expiration_date: null,
+    status: 'active',
+    auto_renew: true,
+    remind_days: [7, 3, 1],
+    notes: null,
+    created_at: '2026-01-01T00:00:00Z',
+    ...extra,
   })
 
   return {
@@ -73,15 +106,19 @@ export type MockBackend = {
 }
 
 /** Remplace entièrement Supabase (auth + PostgREST) par une base en mémoire. */
-export async function mockSupabase(page: Page, options: {
-  signedIn?: boolean
-  data?: Record<string, Row[]>
-  theme?: 'dark' | 'light'
-} = {}): Promise<MockBackend> {
+export async function mockSupabase(
+  page: Page,
+  options: {
+    signedIn?: boolean
+    data?: Record<string, Row[]>
+    theme?: 'dark' | 'light'
+  } = {},
+): Promise<MockBackend> {
   const { signedIn = true, data = seedData(), theme } = options
   const backend: MockBackend = { tables: structuredClone(data) }
 
-  if (theme) backend.tables.subscription_settings = [{ user_id: USER.id, theme, reminders_enabled: false }]
+  if (theme)
+    backend.tables.subscription_settings = [{ user_id: USER.id, theme, reminders_enabled: false }]
 
   if (signedIn) {
     await page.addInitScript((user) => {
@@ -91,7 +128,14 @@ export async function mockSupabase(page: Page, options: {
         token_type: 'bearer',
         expires_in: 3600 * 24 * 365,
         expires_at: Math.floor(Date.now() / 1000) + 3600 * 24 * 365,
-        user: { ...user, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' },
+        user: {
+          ...user,
+          aud: 'authenticated',
+          role: 'authenticated',
+          app_metadata: {},
+          user_metadata: {},
+          created_at: '2026-01-01T00:00:00Z',
+        },
       }
       if (!window.localStorage.getItem('sb-ewswqwmaejddwqiwaspq-auth-token')) {
         window.localStorage.setItem('sb-ewswqwmaejddwqiwaspq-auth-token', JSON.stringify(session))
@@ -103,7 +147,11 @@ export async function mockSupabase(page: Page, options: {
     route.fulfill({
       status,
       contentType: 'application/json',
-      headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' },
+      headers: {
+        'access-control-allow-origin': '*',
+        'access-control-allow-headers': '*',
+        'access-control-allow-methods': '*',
+      },
       body: JSON.stringify(body),
     })
 
@@ -117,23 +165,39 @@ export async function mockSupabase(page: Page, options: {
     if (url.pathname.startsWith('/auth/v1')) {
       if (url.pathname.endsWith('/user')) return json(route, { ...USER, aud: 'authenticated' })
       if (url.pathname.endsWith('/logout')) return json(route, {}, 204)
-      if (url.pathname.endsWith('/token')) return json(route, { error: 'invalid_grant', error_description: 'Invalid login credentials' }, 400)
+      if (url.pathname.endsWith('/token'))
+        return json(
+          route,
+          { error: 'invalid_grant', error_description: 'Invalid login credentials' },
+          400,
+        )
       return json(route, {})
     }
 
     const table = url.pathname.replace('/rest/v1/', '')
     const rows = (backend.tables[table] ??= [])
 
-    if (backend.failTable === table && method !== 'GET') return json(route, { message: 'boom' }, 500)
+    if (backend.failTable === table && method !== 'GET')
+      return json(route, { message: 'boom' }, 500)
 
     if (method === 'GET') {
       const filters = parseFilters(url)
-      const result = rows.filter((row) => filters.every(([key, value]) => String(row[key]) === value))
+      const result = rows.filter((row) =>
+        filters.every(([key, value]) => String(row[key]) === value),
+      )
       const single = (request.headers().accept || '').includes('vnd.pgrst.object')
       if (single) {
         return result.length
           ? json(route, result[0])
-          : json(route, { code: 'PGRST116', details: 'The result contains 0 rows', message: 'JSON object requested' }, 406)
+          : json(
+              route,
+              {
+                code: 'PGRST116',
+                details: 'The result contains 0 rows',
+                message: 'JSON object requested',
+              },
+              406,
+            )
       }
       return json(route, result)
     }
@@ -141,7 +205,12 @@ export async function mockSupabase(page: Page, options: {
     if (method === 'POST') {
       const payload = request.postDataJSON() as Row | Row[]
       const incoming = Array.isArray(payload) ? payload : [payload]
-      const keys = table === 'subscription_providers' ? ['user_id', 'id'] : table === 'subscription_settings' ? ['user_id'] : ['id']
+      const keys =
+        table === 'subscription_providers'
+          ? ['user_id', 'id']
+          : table === 'subscription_settings'
+            ? ['user_id']
+            : ['id']
       for (const item of incoming) {
         const index = rows.findIndex((row) => keys.every((key) => row[key] === item[key]))
         if (index >= 0) rows[index] = { ...rows[index], ...item }
@@ -152,7 +221,9 @@ export async function mockSupabase(page: Page, options: {
 
     if (method === 'DELETE') {
       const filters = parseFilters(url)
-      backend.tables[table] = rows.filter((row) => !filters.every(([key, value]) => String(row[key]) === value))
+      backend.tables[table] = rows.filter(
+        (row) => !filters.every(([key, value]) => String(row[key]) === value),
+      )
       return json(route, [], 204)
     }
 
@@ -161,7 +232,11 @@ export async function mockSupabase(page: Page, options: {
 
   // Les favicons externes ne doivent pas ralentir ni rendre instables les tests.
   await page.route('**/www.google.com/s2/favicons**', (route) =>
-    route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#7c5cff"/></svg>' }),
+    route.fulfill({
+      status: 200,
+      contentType: 'image/svg+xml',
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#7c5cff"/></svg>',
+    }),
   )
 
   return backend

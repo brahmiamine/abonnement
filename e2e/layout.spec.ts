@@ -14,7 +14,10 @@ for (const screen of SCREENS) {
     await settle(page)
     expect(await pageScrollsHorizontally(page)).toBe(false)
     expect(await findOverflowing(page)).toEqual([])
-    await page.screenshot({ path: `e2e/screenshots/${info.project.name}-${screen.hash}.png`, fullPage: true })
+    await page.screenshot({
+      path: `e2e/screenshots/${info.project.name}-${screen.hash}.png`,
+      fullPage: true,
+    })
   })
 }
 
@@ -31,7 +34,7 @@ test('« subscriptions » : un nom très long reste dans sa carte', async ({ pag
 test('la modale d’ajout ne déborde pas', async ({ page }, info) => {
   await page.goto('./#/subscriptions')
   await openAddModal(page)
-  await expect(page.getByRole('dialog', { name: 'Abonnement' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: /abonnement/i })).toBeVisible()
   expect(await pageScrollsHorizontally(page)).toBe(false)
   const box = (await page.getByRole('dialog').boundingBox())!
   expect(box.x).toBeGreaterThanOrEqual(0)
@@ -40,6 +43,7 @@ test('la modale d’ajout ne déborde pas', async ({ page }, info) => {
 })
 
 test.describe('barre de navigation mobile', () => {
+  // eslint-disable-next-line no-empty-pattern -- Playwright impose la déstructuration des fixtures
   test.beforeEach(({}, info) => {
     test.skip(!/mobile/.test(info.project.name), 'mobile uniquement')
   })

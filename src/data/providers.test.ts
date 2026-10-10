@@ -52,7 +52,10 @@ describe('missingExtraProviders', () => {
   })
 
   it('ignore ceux déjà présents par nom, sans tenir compte de la casse ni des espaces', () => {
-    const current = [provider({ id: 'x', name: 'FREE  mobile' }), provider({ id: 'y', name: 'trex-iptv' })]
+    const current = [
+      provider({ id: 'x', name: 'FREE  mobile' }),
+      provider({ id: 'y', name: 'trex-iptv' }),
+    ]
     const names = missingExtraProviders(current).map((item) => item.name)
     expect(names).toEqual(['Strong8K IPTV', 'King365 IPTV'])
   })
@@ -64,6 +67,11 @@ describe('missingExtraProviders', () => {
   })
 
   it('retourne une liste vide quand tout est déjà semé', () => {
-    expect(missingExtraProviders([], EXTRA_PROVIDERS.map((item) => item.id))).toEqual([])
+    expect(
+      missingExtraProviders(
+        [],
+        EXTRA_PROVIDERS.map((item) => item.id),
+      ),
+    ).toEqual([])
   })
 })

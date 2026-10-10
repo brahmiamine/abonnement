@@ -48,14 +48,17 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
         </div>
         <span className="eyebrow">Sécurité du compte</span>
         <h1>Nouveau mot de passe</h1>
-        <p className="auth-copy">Choisis un nouveau mot de passe pour terminer la récupération de ton compte.</p>
+        <p className="auth-copy">
+          Choisis un nouveau mot de passe pour terminer la récupération de ton compte.
+        </p>
 
         <form onSubmit={submit}>
           <div className="field">
-            <label>Nouveau mot de passe</label>
+            <label htmlFor="new-password">Nouveau mot de passe</label>
             <div className="auth-input password-input">
               <LockKeyhole size={18} />
               <input
+                id="new-password"
                 type={showPassword ? 'text' : 'password'}
                 minLength={8}
                 required
@@ -81,10 +84,11 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
           </div>
 
           <div className="field">
-            <label>Confirmer le mot de passe</label>
+            <label htmlFor="confirm-password">Confirmer le mot de passe</label>
             <div className="auth-input password-input">
               <LockKeyhole size={18} />
               <input
+                id="confirm-password"
                 type={showConfirmation ? 'text' : 'password'}
                 minLength={8}
                 required
@@ -97,7 +101,9 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowConfirmation((value) => !value)}
-                aria-label={showConfirmation ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                aria-label={
+                  showConfirmation ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
+                }
               >
                 {showConfirmation ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>

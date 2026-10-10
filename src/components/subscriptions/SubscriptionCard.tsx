@@ -33,8 +33,12 @@ export const SubscriptionCard = memo(function SubscriptionCard({
           <span className="category-label">{item.category}</span>
         </div>
         <div className="sub-actions">
-          <button className="icon-btn tiny" onClick={onEdit} aria-label="Modifier"><Edit3 size={16} /></button>
-          <button className="icon-btn tiny danger" onClick={onDelete} aria-label="Supprimer"><Trash2 size={16} /></button>
+          <button className="icon-btn tiny" onClick={onEdit} aria-label="Modifier">
+            <Edit3 size={16} />
+          </button>
+          <button className="icon-btn tiny danger" onClick={onDelete} aria-label="Supprimer">
+            <Trash2 size={16} />
+          </button>
         </div>
       </div>
 

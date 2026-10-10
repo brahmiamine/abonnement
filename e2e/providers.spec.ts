@@ -19,7 +19,9 @@ test('Free Mobile, Strong8K, Trex et King365 IPTV sont ajoutés au catalogue', a
   expect(saved).toEqual(expect.arrayContaining(NEW_PROVIDERS))
 })
 
-test('les nouveaux fournisseurs sont proposés dans la création d’un abonnement', async ({ page }) => {
+test('les nouveaux fournisseurs sont proposés dans la création d’un abonnement', async ({
+  page,
+}) => {
   await page.goto('./#/subscriptions')
   await openAddModal(page)
   const input = page.getByPlaceholder('Netflix, Claude, RED by SFR…')
@@ -54,7 +56,13 @@ test('un fournisseur supprimé ne revient pas au rechargement', async ({ page })
 
 test('on ne crée pas de doublon si le fournisseur existe déjà', async ({ page }) => {
   backend.tables.subscription_providers.push({
-    user_id: 'user-1', id: 'custom-1', name: 'free mobile', category: 'Télécom', logo: '', website: '', color: '#111',
+    user_id: 'user-1',
+    id: 'custom-1',
+    name: 'free mobile',
+    category: 'Télécom',
+    logo: '',
+    website: '',
+    color: '#111',
   })
   await page.goto('./#/providers')
   await expect(page.locator('.provider-admin-row', { hasText: 'Strong8K IPTV' })).toBeVisible()
@@ -63,7 +71,10 @@ test('on ne crée pas de doublon si le fournisseur existe déjà', async ({ page
 
 test('ajout, modification et recherche d’un fournisseur', async ({ page }) => {
   await page.goto('./#/providers')
-  await page.locator('.provider-manager-header').getByRole('button', { name: /Ajouter/ }).click()
+  await page
+    .locator('.provider-manager-header')
+    .getByRole('button', { name: /Ajouter/ })
+    .click()
   await page.getByPlaceholder('Ex. RED by SFR Mobile').fill('Mon IPTV')
   await page.locator('.provider-editor').getByRole('button', { name: 'Enregistrer' }).click()
   const row = page.locator('.provider-admin-row', { hasText: 'Mon IPTV' })

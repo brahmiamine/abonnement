@@ -18,10 +18,15 @@ test.describe('connexion', () => {
     await expect(page.locator('.auth-message')).toBeVisible()
   })
 
-  test('les écrans d’inscription et de mot de passe oublié restent dans l’écran', async ({ page }) => {
+  test('les écrans d’inscription et de mot de passe oublié restent dans l’écran', async ({
+    page,
+  }) => {
     await mockSupabase(page, { signedIn: false })
     await page.goto('./')
-    const fits = () => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
+    const fits = () =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      )
 
     await page.locator('.auth-switch').click()
     await expect(page.getByRole('heading', { name: 'Créer mon compte' })).toBeVisible()
@@ -86,7 +91,10 @@ test.describe('abonnements', () => {
   test('annuler la suppression conserve l’abonnement', async ({ page }) => {
     await page.goto('./#/subscriptions')
     page.once('dialog', (dialog) => void dialog.dismiss())
-    await page.locator('.subscription-card', { hasText: 'Spotify' }).getByRole('button', { name: 'Supprimer' }).click()
+    await page
+      .locator('.subscription-card', { hasText: 'Spotify' })
+      .getByRole('button', { name: 'Supprimer' })
+      .click()
     await expect(page.locator('.subscription-card', { hasText: 'Spotify' })).toBeVisible()
   })
 

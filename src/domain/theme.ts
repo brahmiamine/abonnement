@@ -25,8 +25,7 @@ export function storeTheme(
   }
 }
 
-export const themeColor = (theme: Settings['theme']) =>
-  theme === 'dark' ? '#0b1020' : '#f5f7fb'
+export const themeColor = (theme: Settings['theme']) => (theme === 'dark' ? '#0b1020' : '#f5f7fb')
 
 function safeStorage(): Storage | undefined {
   try {

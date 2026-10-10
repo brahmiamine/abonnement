@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { AuthScreen } from './components/auth/AuthScreen'
 import { ResetPasswordScreen } from './components/auth/ResetPasswordScreen'
 import { MobileNav } from './components/layout/MobileNav'
 import { Sidebar } from './components/layout/Sidebar'
 import { Topbar } from './components/layout/Topbar'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { LoadingSkeleton } from './components/common/LoadingSkeleton'
+import { SyncBanner } from './components/common/SyncBanner'
 import { SubscriptionModal } from './components/subscriptions/SubscriptionModal'
 import { createBackup, parseBackup, serializeBackup } from './domain/backup'
 import { expenseSummary, expensesByCategory } from './domain/expenses'
@@ -18,11 +20,20 @@ import { usePwaInstall } from './hooks/usePwaInstall'
 import type { Provider, Subscription, SubscriptionDraft } from './types'
 import { downloadJson } from './utils/backup'
 import { isoToday } from './config'
-import { ExpensesView } from './views/ExpensesView'
-import { HomeView } from './views/HomeView'
-import { ProvidersView } from './views/ProvidersView'
-import { SettingsView } from './views/SettingsView'
-import { SubscriptionsView } from './views/SubscriptionsView'
+
+const HomeView = lazy(() => import('./views/HomeView').then((m) => ({ default: m.HomeView })))
+const SubscriptionsView = lazy(() =>
+  import('./views/SubscriptionsView').then((m) => ({ default: m.SubscriptionsView })),
+)
+const ExpensesView = lazy(() =>
+  import('./views/ExpensesView').then((m) => ({ default: m.ExpensesView })),
+)
+const SettingsView = lazy(() =>
+  import('./views/SettingsView').then((m) => ({ default: m.SettingsView })),
+)
+const ProvidersView = lazy(() =>
+  import('./views/ProvidersView').then((m) => ({ default: m.ProvidersView })),
+)
 
 function App() {
   const auth = useAuth()
@@ -34,15 +45,9 @@ function App() {
 
   useNotifications(data.subscriptions, data.settings.remindersEnabled)
 
-  const summary = useMemo(
-    () => expenseSummary(data.subscriptions),
-    [data.subscriptions],
-  )
+  const summary = useMemo(() => expenseSummary(data.subscriptions), [data.subscriptions])
 
-  const byCategory = useMemo(
-    () => expensesByCategory(data.subscriptions),
-    [data.subscriptions],
-  )
+  const byCategory = useMemo(() => expensesByCategory(data.subscriptions), [data.subscriptions])
 
   const upcoming = useMemo(
     () =>
@@ -108,10 +113,7 @@ function App() {
 
   const exportData = () => {
     const payload = createBackup(data.subscriptions, data.providers, data.settings)
-    downloadJson(
-      serializeBackup(payload),
-      `subly-backup-${isoToday()}.json`,
-    )
+    downloadJson(serializeBackup(payload), `subly-backup-${isoToday()}.json`)
   }
 
   const importData = async (file?: File) => {
@@ -172,61 +174,69 @@ function App() {
           onAdd={openAdd}
         />
 
+        <SyncBanner
+          syncState={data.syncState}
+          pendingCount={data.pendingCount}
+          onRetry={data.retry}
+        />
+
         {!data.dataReady ? (
           <LoadingSkeleton />
         ) : (
-          <div className="page" key={view}>
-            {view === 'home' && (
-              <HomeView
-                summary={summary}
-                upcoming={upcoming}
-                onAdd={openAdd}
-                onEdit={openEdit}
-                onSubscriptions={() => setView('subscriptions')}
-                onExpenses={() => setView('expenses')}
-              />
-            )}
+          <ErrorBoundary resetKey={view}>
+            <Suspense fallback={<LoadingSkeleton />}>
+              <div className="page" key={view}>
+                {view === 'home' && (
+                  <HomeView
+                    summary={summary}
+                    upcoming={upcoming}
+                    onAdd={openAdd}
+                    onEdit={openEdit}
+                    onSubscriptions={() => setView('subscriptions')}
+                    onExpenses={() => setView('expenses')}
+                  />
+                )}
 
-            {view === 'subscriptions' && (
-              <SubscriptionsView
-                subscriptions={data.subscriptions}
-                onAdd={openAdd}
-                onEdit={openEdit}
-                onDelete={(subscription) => void deleteSubscription(subscription)}
-              />
-            )}
+                {view === 'subscriptions' && (
+                  <SubscriptionsView
+                    subscriptions={data.subscriptions}
+                    onAdd={openAdd}
+                    onEdit={openEdit}
+                    onDelete={(subscription) => void deleteSubscription(subscription)}
+                  />
+                )}
 
-            {view === 'expenses' && (
-              <ExpensesView summary={summary} byCategory={byCategory} />
-            )}
+                {view === 'expenses' && <ExpensesView summary={summary} byCategory={byCategory} />}
 
-            {view === 'settings' && (
-              <SettingsView
-                settings={data.settings}
-                email={auth.session.user.email}
-                providerCount={data.providers.length}
-                installAvailable={pwa.installAvailable}
-                onEnableNotifications={requestNotifications}
-                onToggleTheme={toggleTheme}
-                onInstall={() => void pwa.install()}
-                onExport={exportData}
-                onImport={importData}
-                onOpenProviders={() => setView('providers')}
-                onSignOut={auth.signOut}
-                onClearSubscriptions={clearSubscriptions}
-              />
-            )}
+                {view === 'settings' && (
+                  <SettingsView
+                    settings={data.settings}
+                    email={auth.session.user.email}
+                    providerCount={data.providers.length}
+                    installAvailable={pwa.installAvailable}
+                    onEnableNotifications={requestNotifications}
+                    onToggleTheme={toggleTheme}
+                    onInstall={() => void pwa.install()}
+                    onExport={exportData}
+                    onImport={importData}
+                    onOpenProviders={() => setView('providers')}
+                    onSignOut={auth.signOut}
+                    onClearSubscriptions={clearSubscriptions}
+                  />
+                )}
 
-            {view === 'providers' && (
-              <ProvidersView
-                providers={data.providers}
-                categories={data.categories}
-                onBack={() => setView('settings')}
-                onSave={data.saveProvider}
-                onDelete={deleteProvider}
-              />
-            )}
-          </div>
+                {view === 'providers' && (
+                  <ProvidersView
+                    providers={data.providers}
+                    categories={data.categories}
+                    onBack={() => setView('settings')}
+                    onSave={data.saveProvider}
+                    onDelete={deleteProvider}
+                  />
+                )}
+              </div>
+            </Suspense>
+          </ErrorBoundary>
         )}
       </main>
 

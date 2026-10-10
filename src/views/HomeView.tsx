@@ -31,30 +31,47 @@ export function HomeView({
     <>
       <section className="metrics-grid">
         <div className="metric-card accent-card rise" style={cascade(0, 70)}>
-          <div className="metric-icon"><WalletCards size={20} /></div>
+          <div className="metric-icon">
+            <WalletCards size={20} />
+          </div>
           <span>Dépenses mensuelles</span>
-          <strong><CountUp value={summary.monthly} /></strong>
-          <small>{summary.activeCount} abonnement{summary.activeCount > 1 ? 's' : ''} actif{summary.activeCount > 1 ? 's' : ''}</small>
+          <strong>
+            <CountUp value={summary.monthly} />
+          </strong>
+          <small>
+            {summary.activeCount} abonnement{summary.activeCount > 1 ? 's' : ''} actif
+            {summary.activeCount > 1 ? 's' : ''}
+          </small>
         </div>
 
         <div className="metric-card rise" style={cascade(1, 70)}>
-          <div className="metric-icon"><CircleDollarSign size={20} /></div>
+          <div className="metric-icon">
+            <CircleDollarSign size={20} />
+          </div>
           <span>Projection annuelle</span>
-          <strong><CountUp value={summary.annual} /></strong>
+          <strong>
+            <CountUp value={summary.annual} />
+          </strong>
           <small>sur la base actuelle</small>
         </div>
 
         <div className="metric-card rise" style={cascade(2, 70)}>
-          <div className="metric-icon"><CalendarClock size={20} /></div>
+          <div className="metric-icon">
+            <CalendarClock size={20} />
+          </div>
           <span>Prochaine échéance</span>
           <strong>{next ? nextRenewalLabel(next.renewalDate) : '—'}</strong>
           <small>{next ? next.name : 'Aucune échéance'}</small>
         </div>
 
         <div className="metric-card rise" style={cascade(3, 70)}>
-          <div className="metric-icon"><BellRing size={20} /></div>
+          <div className="metric-icon">
+            <BellRing size={20} />
+          </div>
           <span>Dans les 30 jours</span>
-          <strong><CountUp value={renewalsIn30Days} money={false} /></strong>
+          <strong>
+            <CountUp value={renewalsIn30Days} money={false} />
+          </strong>
           <small>renouvellement(s)</small>
         </div>
       </section>
@@ -62,8 +79,13 @@ export function HomeView({
       <section className="dashboard-grid">
         <div className="panel upcoming-panel rise" style={cascade(0, 0, 160)}>
           <div className="panel-header">
-            <div><span className="eyebrow">À surveiller</span><h2>Prochaines échéances</h2></div>
-            <button className="text-btn" onClick={onSubscriptions}>Tout voir <ChevronRight size={16} /></button>
+            <div>
+              <span className="eyebrow">À surveiller</span>
+              <h2>Prochaines échéances</h2>
+            </div>
+            <button className="text-btn" onClick={onSubscriptions}>
+              Tout voir <ChevronRight size={16} />
+            </button>
           </div>
 
           {upcoming.length === 0 ? (
@@ -78,8 +100,13 @@ export function HomeView({
                   onClick={() => onEdit(item)}
                 >
                   <ProviderLogo name={item.name} logo={item.logo} size="sm" />
-                  <span className="renewal-name"><strong>{item.name}</strong><small>{item.category}</small></span>
-                  <span className={`renewal-badge ${daysUntil(item.renewalDate) <= 3 ? 'urgent' : ''}`}>
+                  <span className="renewal-name">
+                    <strong>{item.name}</strong>
+                    <small>{item.category}</small>
+                  </span>
+                  <span
+                    className={`renewal-badge ${daysUntil(item.renewalDate) <= 3 ? 'urgent' : ''}`}
+                  >
                     {nextRenewalLabel(item.renewalDate)}
                   </span>
                   <span className="renewal-price">
@@ -95,14 +122,34 @@ export function HomeView({
 
         <div className="panel expense-panel rise" style={cascade(0, 0, 240)}>
           <div className="panel-header">
-            <div><span className="eyebrow">Dépenses</span><h2>Vue rapide</h2></div>
-            <button className="text-btn" onClick={onExpenses}>Analyser <ChevronRight size={16} /></button>
+            <div>
+              <span className="eyebrow">Dépenses</span>
+              <h2>Vue rapide</h2>
+            </div>
+            <button className="text-btn" onClick={onExpenses}>
+              Analyser <ChevronRight size={16} />
+            </button>
           </div>
 
           <div className="expense-snapshot">
-            <div><span>Par mois</span><strong><CountUp value={summary.monthly} /></strong></div>
-            <div><span>Par an</span><strong><CountUp value={summary.annual} /></strong></div>
-            <div><span>Moyenne / abonnement</span><strong><CountUp value={summary.averageMonthly} /></strong></div>
+            <div>
+              <span>Par mois</span>
+              <strong>
+                <CountUp value={summary.monthly} />
+              </strong>
+            </div>
+            <div>
+              <span>Par an</span>
+              <strong>
+                <CountUp value={summary.annual} />
+              </strong>
+            </div>
+            <div>
+              <span>Moyenne / abonnement</span>
+              <strong>
+                <CountUp value={summary.averageMonthly} />
+              </strong>
+            </div>
           </div>
 
           <div className="expense-highlight">

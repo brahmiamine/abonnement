@@ -33,14 +33,10 @@ export function SubscriptionsView({
     }
     if (filter === 'trial') list = list.filter((item) => item.status === 'trial')
     if (filter === 'expensive') {
-      return [...list].sort(
-        (a, b) => toMonthly(b.price, b.cycle) - toMonthly(a.price, a.cycle),
-      )
+      return [...list].sort((a, b) => toMonthly(b.price, b.cycle) - toMonthly(a.price, a.cycle))
     }
 
-    return [...list].sort(
-      (a, b) => daysUntil(a.renewalDate) - daysUntil(b.renewalDate),
-    )
+    return [...list].sort((a, b) => daysUntil(a.renewalDate) - daysUntil(b.renewalDate))
   }, [subscriptions, query, filter])
 
   return (
@@ -57,12 +53,14 @@ export function SubscriptionsView({
 
         <div className="filter-row">
           <SlidersHorizontal size={17} />
-          {([
-            ['all', 'Tous'],
-            ['soon', '≤ 30 jours'],
-            ['trial', 'Essais'],
-            ['expensive', 'Plus chers'],
-          ] as [SubscriptionFilter, string][]).map(([value, label]) => (
+          {(
+            [
+              ['all', 'Tous'],
+              ['soon', '≤ 30 jours'],
+              ['trial', 'Essais'],
+              ['expensive', 'Plus chers'],
+            ] as [SubscriptionFilter, string][]
+          ).map(([value, label]) => (
             <button
               className={filter === value ? 'active' : ''}
               key={value}
@@ -75,7 +73,9 @@ export function SubscriptionsView({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="panel rise"><EmptyState onAdd={onAdd} /></div>
+        <div className="panel rise">
+          <EmptyState onAdd={onAdd} />
+        </div>
       ) : (
         <div className="subscriptions-grid">
           {filtered.map((item, index) => (

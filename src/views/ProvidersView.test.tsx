@@ -6,10 +6,17 @@ import { ProvidersView } from './ProvidersView'
 
 const categories = ['Streaming', 'Télécom', 'Autre'] as const
 
-const setup = (providers = [
-  provider(),
-  provider({ id: 'free-mobile', name: 'Free Mobile', category: 'Télécom', website: 'https://mobile.free.fr' }),
-]) => {
+const setup = (
+  providers = [
+    provider(),
+    provider({
+      id: 'free-mobile',
+      name: 'Free Mobile',
+      category: 'Télécom',
+      website: 'https://mobile.free.fr',
+    }),
+  ],
+) => {
   const props = {
     providers,
     categories: [...categories],
@@ -65,7 +72,9 @@ describe('ProvidersView', () => {
     await userEvent.type(name, 'Netflix Premium')
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await waitFor(() => expect(props.onSave).toHaveBeenCalled())
-    expect(props.onSave).toHaveBeenCalledWith(expect.objectContaining({ id: 'netflix', name: 'Netflix Premium' }))
+    expect(props.onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'netflix', name: 'Netflix Premium' }),
+    )
   })
 
   it('affiche une erreur si l’enregistrement échoue et garde la fenêtre ouverte', async () => {

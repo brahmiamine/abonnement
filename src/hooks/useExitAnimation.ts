@@ -9,7 +9,9 @@ export function useExitAnimation(onClose: () => void) {
   const [closing, setClosing] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const latest = useRef(onClose)
-  latest.current = onClose
+  useEffect(() => {
+    latest.current = onClose
+  })
 
   useEffect(() => () => clearTimeout(timer.current), [])
 

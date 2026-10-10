@@ -20,9 +20,10 @@ export function useNotifications(subscriptions: Subscription[], enabled: boolean
         const key = `${item.id}:${item.renewalDate}:${days}`
         if (sent[key] === today) continue
 
-        const title = days === 0
-          ? `${item.name} se renouvelle aujourd’hui`
-          : `${item.name} : renouvellement dans ${days} j`
+        const title =
+          days === 0
+            ? `${item.name} se renouvelle aujourd’hui`
+            : `${item.name} : renouvellement dans ${days} j`
         const body = `${formatMoney(item.price)} · ${formatDate(item.renewalDate)}`
 
         try {

@@ -31,9 +31,17 @@ vi.mock('./supabase', () => {
   return { supabase: { from: builder } }
 })
 
-const { ensureProviders, deleteProvider, loadCategories, saveProvider } = await import('./providersDb')
+const { ensureProviders, deleteProvider, loadCategories, saveProvider } =
+  await import('./providersDb')
 
-const row = (id: string, name: string) => ({ id, name, category: 'Streaming', logo: '', website: null, color: null })
+const row = (id: string, name: string) => ({
+  id,
+  name,
+  category: 'Streaming',
+  logo: '',
+  website: null,
+  color: null,
+})
 
 beforeEach(() => {
   for (const key of Object.keys(tables)) delete tables[key]
@@ -46,7 +54,13 @@ describe('ensureProviders', () => {
     tables.subscription_providers = [row('netflix', 'Netflix')]
     const result = await ensureProviders('u1')
     expect(result.map((item) => item.name)).toEqual(
-      expect.arrayContaining(['Netflix', 'Free Mobile', 'Strong8K IPTV', 'Trex IPTV', 'King365 IPTV']),
+      expect.arrayContaining([
+        'Netflix',
+        'Free Mobile',
+        'Strong8K IPTV',
+        'Trex IPTV',
+        'King365 IPTV',
+      ]),
     )
   })
 
@@ -76,7 +90,9 @@ describe('ensureProviders', () => {
     tables.subscription_provider_templates = [row('spotify', 'Spotify')]
     const result = await ensureProviders('u1')
     expect(inserted[0]).toHaveLength(1)
-    expect(result.map((item) => item.id)).toEqual(expect.arrayContaining(['spotify', 'free-mobile']))
+    expect(result.map((item) => item.id)).toEqual(
+      expect.arrayContaining(['spotify', 'free-mobile']),
+    )
   })
 
   it('cloisonne le suivi des ajouts par utilisateur', async () => {
@@ -89,12 +105,24 @@ describe('ensureProviders', () => {
 
 describe('saveProvider / loadCategories', () => {
   it('enregistre avec les valeurs par défaut attendues', async () => {
-    await saveProvider({ id: 'x', name: 'X', category: 'Autre', logo: '', website: '', color: '' }, 'u1')
-    expect(tables.subscription_providers[0]).toMatchObject({ id: 'x', user_id: 'u1', website: null, color: null, logo: '' })
+    await saveProvider(
+      { id: 'x', name: 'X', category: 'Autre', logo: '', website: '', color: '' },
+      'u1',
+    )
+    expect(tables.subscription_providers[0]).toMatchObject({
+      id: 'x',
+      user_id: 'u1',
+      website: null,
+      color: null,
+      logo: '',
+    })
   })
 
   it('charge les catégories', async () => {
-    tables.subscription_categories = [{ id: 'IA', label: 'IA' }, { id: 'Cloud', label: 'Cloud' }]
+    tables.subscription_categories = [
+      { id: 'IA', label: 'IA' },
+      { id: 'Cloud', label: 'Cloud' },
+    ]
     expect(await loadCategories()).toEqual(['IA', 'Cloud'])
   })
 })
