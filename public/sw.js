@@ -1,5 +1,6 @@
 const CACHE = 'subly-shell-v3'
-const BASE = '/abonnement/'
+// Chemin de base déduit du scope d'enregistrement (plus de chemin codé en dur).
+const BASE = new URL(self.registration.scope).pathname
 const CORE = [BASE, BASE + 'manifest.webmanifest', BASE + 'icon.svg', BASE + 'icon-192.png', BASE + 'icon-512.png']
 
 self.addEventListener('install', (event) => {

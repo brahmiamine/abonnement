@@ -29,7 +29,7 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
     try {
       const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
-      window.history.replaceState({}, document.title, '/abonnement/')
+      window.history.replaceState({}, document.title, import.meta.env.BASE_URL)
       onComplete()
     } catch (value) {
       setMessage(value instanceof Error ? value.message : 'Impossible de modifier le mot de passe.')
@@ -43,7 +43,7 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
       <div className="auth-blob auth-blob--violet" aria-hidden="true" />
       <div className="auth-card">
         <div className="brand auth-brand">
-          <img src="/abonnement/icon.svg" alt="" />
+          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
           <span>Subly</span>
         </div>
         <span className="eyebrow">Sécurité du compte</span>

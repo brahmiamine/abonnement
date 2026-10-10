@@ -29,7 +29,7 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="brand">
-        <img src="/abonnement/icon.svg" alt="" />
+        <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
         <span className="sidebar-label">Subly</span>
       </div>
 

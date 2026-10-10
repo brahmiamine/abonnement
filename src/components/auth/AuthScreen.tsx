@@ -52,7 +52,7 @@ export function AuthScreen() {
       <div className="auth-blob auth-blob--green" aria-hidden="true" />
       <div className="auth-card">
         <div className="brand auth-brand">
-          <img src="/abonnement/icon.svg" alt="" />
+          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
           <span>Subly</span>
         </div>
 

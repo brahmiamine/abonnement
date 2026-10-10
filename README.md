@@ -38,11 +38,14 @@ npm install
 npm run dev
 ```
 
-## Tests
+## Configuration Supabase
 
-```bash
-npm test
-```
+1. Créez un projet Supabase et appliquez le schéma : `supabase/migrations/*.sql` (tables, contraintes et politiques RLS ; script idempotent).
+2. Par défaut l'application cible le projet de production. Pour en utiliser un autre, copiez `.env.example` vers `.env.local` et renseignez `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_KEY`.
+3. La clé publiable est publique par conception : la sécurité repose entièrement sur la Row Level Security, ne la désactivez jamais.
+4. Peuplez `subscription_categories` et `subscription_provider_templates` avec vos catégories et fournisseurs de départ.
+
+> Le schéma SQL a été reconstitué à partir du code client : comparez-le à votre base avant de l'appliquer.
 
 ## Build
 
@@ -53,7 +56,7 @@ npm run preview
 
 ## GitHub Pages
 
-Le projet utilise la base Vite `/abonnement/` et le workflow `.github/workflows/deploy-pages.yml`.
+Le projet utilise la base Vite `/abonnement/` (définie dans `vite.config.ts` ; le code et le service worker en déduisent leurs chemins) et le workflow `.github/workflows/deploy-pages.yml`.
 
 URL :
 

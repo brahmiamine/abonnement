@@ -30,12 +30,12 @@ export function useNotifications(subscriptions: Subscription[], enabled: boolean
           if (registration) {
             await registration.showNotification(title, {
               body,
-              icon: '/abonnement/icon.svg',
-              badge: '/abonnement/icon.svg',
+              icon: `${import.meta.env.BASE_URL}icon.svg`,
+              badge: `${import.meta.env.BASE_URL}icon.svg`,
               tag: key,
             })
           } else {
-            new Notification(title, { body, icon: '/abonnement/icon.svg', tag: key })
+            new Notification(title, { body, icon: `${import.meta.env.BASE_URL}icon.svg`, tag: key })
           }
           sent[key] = today
         } catch {

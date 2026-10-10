@@ -31,7 +31,7 @@ export function Topbar({
       <div className="topbar-title">
         <p className="eyebrow">Gestionnaire personnel</p>
         <div className="mobile-brand" aria-hidden="true">
-          <img src="/abonnement/icon.svg" alt="" />
+          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
           <span>Subly</span>
         </div>
         <h1 key={view}>{titles[view]}</h1>
