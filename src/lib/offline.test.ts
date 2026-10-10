@@ -121,6 +121,7 @@ describe('flushQueue', () => {
 
   it('abandonne une écriture refusée sans bloquer les suivantes', async () => {
     failWith = { message: 'permission denied' }
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     const result = await flushQueue(queue, 'u1')
     expect(result.failed).toBe(1)
     expect(result.remaining).toEqual([])

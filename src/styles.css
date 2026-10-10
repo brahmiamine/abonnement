@@ -2495,3 +2495,22 @@ a:hover {
   gap: 6px;
   color: var(--accent-2);
 }
+.magic-link-btn {
+  width: 100%;
+  margin-top: 12px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--accent-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.magic-link-btn:hover {
+  background: var(--accent-soft);
+}

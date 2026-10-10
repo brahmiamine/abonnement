@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Eye, EyeOff, LockKeyhole, Mail, RefreshCw, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, LockKeyhole, Mail, RefreshCw, Sparkles, UserPlus } from 'lucide-react'
 import { APP_URL } from '../../config'
+import { MIN_PASSWORD_LENGTH, validatePassword } from '../../domain/password'
 import { supabase } from '../../lib/supabase'
 
-type Mode = 'login' | 'signup' | 'forgot'
+type Mode = 'login' | 'signup' | 'forgot' | 'magic'
 
 export function AuthScreen() {
   const [mode, setMode] = useState<Mode>('login')
@@ -28,7 +29,21 @@ export function AuthScreen() {
         setMessage(
           'Lien envoyé. Consulte ton e-mail puis ouvre le lien pour choisir un nouveau mot de passe.',
         )
+      } else if (mode === 'magic') {
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: APP_URL, shouldCreateUser: true },
+        })
+        if (error) throw error
+        setMessage(
+          'Lien envoyé. Ouvre l’e-mail reçu sur cet appareil ou un autre : un clic te connecte, sans mot de passe.',
+        )
       } else {
+        const weakness = validatePassword(password)
+        if (weakness) {
+          setMessage(weakness)
+          return
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -48,7 +63,14 @@ export function AuthScreen() {
     }
   }
 
-  const passwordMinLength = mode === 'signup' ? 8 : 6
+  const switchMode = (next: Mode) => {
+    setMode(next)
+    setPassword('')
+    setShowPassword(false)
+    setMessage('')
+  }
+
+  const passwordless = mode === 'forgot' || mode === 'magic'
 
   return (
     <div className="auth-screen">
@@ -67,12 +89,16 @@ export function AuthScreen() {
               ? 'Connexion'
               : mode === 'signup'
                 ? 'Créer mon compte'
-                : 'Mot de passe oublié'}
+                : mode === 'magic'
+                  ? 'Connexion par e-mail'
+                  : 'Mot de passe oublié'}
           </h1>
           <p className="auth-copy">
             {mode === 'forgot'
               ? 'Indique ton adresse e-mail. Nous t’enverrons un lien sécurisé pour définir un nouveau mot de passe.'
-              : 'Tes données sont synchronisées dans Supabase et protégées par ton compte.'}
+              : mode === 'magic'
+                ? 'Indique ton adresse e-mail : nous t’envoyons un lien de connexion à usage unique. Aucun mot de passe à retenir.'
+                : 'Tes données sont synchronisées dans Supabase et protégées par ton compte.'}
           </p>
 
           <form onSubmit={submit}>
@@ -92,7 +118,7 @@ export function AuthScreen() {
               </div>
             </div>
 
-            {mode !== 'forgot' && (
+            {!passwordless && (
               <div className="field">
                 <div className="field-label-row">
                   <label htmlFor="auth-password">Mot de passe</label>
@@ -100,12 +126,7 @@ export function AuthScreen() {
                     <button
                       type="button"
                       className="forgot-link"
-                      onClick={() => {
-                        setMode('forgot')
-                        setPassword('')
-                        setShowPassword(false)
-                        setMessage('')
-                      }}
+                      onClick={() => switchMode('forgot')}
                     >
                       Mot de passe oublié ?
                     </button>
@@ -117,12 +138,16 @@ export function AuthScreen() {
                   <input
                     id="auth-password"
                     type={showPassword ? 'text' : 'password'}
-                    minLength={passwordMinLength}
+                    minLength={mode === 'signup' ? MIN_PASSWORD_LENGTH : undefined}
                     required
                     autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder={mode === 'signup' ? '8 caractères minimum' : 'Mot de passe'}
+                    placeholder={
+                      mode === 'signup'
+                        ? `${MIN_PASSWORD_LENGTH} caractères minimum, avec lettres et chiffres`
+                        : 'Mot de passe'
+                    }
                   />
                   <button
                     type="button"
@@ -147,6 +172,8 @@ export function AuthScreen() {
                 <LockKeyhole size={18} />
               ) : mode === 'signup' ? (
                 <UserPlus size={18} />
+              ) : mode === 'magic' ? (
+                <Sparkles size={18} />
               ) : (
                 <Mail size={18} />
               )}
@@ -160,14 +187,15 @@ export function AuthScreen() {
             </button>
           </form>
 
+          {(mode === 'login' || mode === 'signup') && (
+            <button type="button" className="magic-link-btn" onClick={() => switchMode('magic')}>
+              <Sparkles size={16} /> Recevoir un lien de connexion par e-mail
+            </button>
+          )}
+
           <button
             className="auth-switch"
-            onClick={() => {
-              setMode(mode === 'login' ? 'signup' : 'login')
-              setPassword('')
-              setShowPassword(false)
-              setMessage('')
-            }}
+            onClick={() => switchMode(mode === 'login' ? 'signup' : 'login')}
           >
             {mode === 'login'
               ? 'Pas encore de compte ? Créer un compte'

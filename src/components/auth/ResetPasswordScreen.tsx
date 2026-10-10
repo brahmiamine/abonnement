@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Check, Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react'
+import { MIN_PASSWORD_LENGTH, passwordStrength, validatePassword } from '../../domain/password'
 import { supabase } from '../../lib/supabase'
 
 export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) {
@@ -9,15 +10,15 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  // Indicateur simple : un segment tous les 3 caractères, 4 au maximum.
-  const strength = Math.min(4, Math.floor(password.length / 3))
+  const strength = passwordStrength(password)
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
     setMessage('')
 
-    if (password.length < 8) {
-      setMessage('Le mot de passe doit contenir au moins 8 caractères.')
+    const weakness = validatePassword(password)
+    if (weakness) {
+      setMessage(weakness)
       return
     }
     if (password !== confirmation) {
@@ -60,12 +61,12 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
               <input
                 id="new-password"
                 type={showPassword ? 'text' : 'password'}
-                minLength={8}
+                minLength={MIN_PASSWORD_LENGTH}
                 required
                 autoComplete="new-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="8 caractères minimum"
+                placeholder={`${MIN_PASSWORD_LENGTH} caractères minimum, avec lettres et chiffres`}
               />
               <button
                 type="button"
@@ -90,7 +91,7 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
               <input
                 id="confirm-password"
                 type={showConfirmation ? 'text' : 'password'}
-                minLength={8}
+                minLength={MIN_PASSWORD_LENGTH}
                 required
                 autoComplete="new-password"
                 value={confirmation}
