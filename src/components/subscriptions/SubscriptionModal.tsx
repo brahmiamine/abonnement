@@ -14,6 +14,7 @@ import type {
   SubscriptionStatus,
 } from '../../types'
 import { ProviderLogo } from '../common/ProviderLogo'
+import { AttachmentsPanel } from './AttachmentsPanel'
 
 const emptyDraft = (): SubscriptionDraft => ({
   name: '',
@@ -34,12 +35,14 @@ const emptyDraft = (): SubscriptionDraft => ({
 
 export function SubscriptionModal({
   initial,
+  userId,
   providers,
   categories,
   onClose,
   onSave,
 }: {
   initial: Subscription | null
+  userId: string
   providers: Provider[]
   categories: Category[]
   onClose: () => void
@@ -427,6 +430,14 @@ export function SubscriptionModal({
               onChange={(event) => setDraft({ ...draft, notes: event.target.value })}
             />
           </div>
+
+          {initial ? (
+            <AttachmentsPanel subscriptionId={initial.id} userId={userId} />
+          ) : (
+            <p className="field-help">
+              Enregistre l’abonnement pour pouvoir y joindre une facture ou un contrat.
+            </p>
+          )}
 
           {error && <div className="auth-message">{error}</div>}
 

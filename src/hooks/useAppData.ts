@@ -15,6 +15,7 @@ import {
   writeSnapshot,
   type PendingOp,
 } from '../lib/offline'
+import { removeSubscriptionFiles } from '../lib/attachmentsDb'
 import { loadSubscriptions, loadUserSettings, saveUserSettings } from '../lib/subscriptionsDb'
 import { flushQueue, runOp } from '../lib/syncQueue'
 import type {
@@ -293,10 +294,17 @@ export function useAppData(session: Session | null) {
   )
 
   const deleteSubscription = useCallback(
-    (id: string) =>
-      mutate([{ type: 'removeSubscription', id }], () =>
+    async (id: string) => {
+      try {
+        // Les lignes de pièces jointes partent avec l'abonnement, pas les fichiers du stockage.
+        await removeSubscriptionFiles(id)
+      } catch {
+        // Hors ligne ou sans pièce jointe : la suppression de l'abonnement doit passer quand même.
+      }
+      await mutate([{ type: 'removeSubscription', id }], () =>
         setSubscriptions((items) => items.filter((item) => item.id !== id)),
-      ),
+      )
+    },
     [mutate],
   )
 

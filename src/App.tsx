@@ -257,6 +257,7 @@ function App() {
       {modalOpen && (
         <SubscriptionModal
           initial={editing}
+          userId={auth.session.user.id}
           providers={data.providers}
           categories={data.categories}
           onClose={() => {
