@@ -15,10 +15,12 @@ export function useNotifications(subscriptions: Subscription[], enabled: boolean
         if (item.status === 'paused') continue
 
         const days = daysUntil(item.renewalDate)
-        if (!item.remindDays.includes(days)) continue
+        // Rattrapage : si le jour exact du rappel est passé (app fermée), on notifie dès l'ouverture.
+        const due = item.remindDays.filter((d) => d >= days)
+        if (days < 0 || due.length === 0) continue
 
-        const key = `${item.id}:${item.renewalDate}:${days}`
-        if (sent[key] === today) continue
+        const key = `${item.id}:${item.renewalDate}:${Math.min(...due)}`
+        if (sent[key]) continue
 
         const title = days === 0
           ? `${item.name} se renouvelle aujourd’hui`
@@ -26,7 +28,7 @@ export function useNotifications(subscriptions: Subscription[], enabled: boolean
         const body = `${formatMoney(item.price)} · ${formatDate(item.renewalDate)}`
 
         try {
-          const registration = await navigator.serviceWorker?.ready
+          const registration = await navigator.serviceWorker?.getRegistration()
           if (registration) {
             await registration.showNotification(title, {
               body,
