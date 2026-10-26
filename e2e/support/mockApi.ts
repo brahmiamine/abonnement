@@ -98,7 +98,7 @@ export async function mockApi(page: Page, options: {
       body: status === 204 ? '' : JSON.stringify(body),
     })
 
-  await page.route('**/abonnement-api.clubika.com/**', async (route) => {
+  await page.route('**/subly.clubika.com/**', async (route) => {
     const request = route.request()
     const url = new URL(request.url())
     const method = request.method()
