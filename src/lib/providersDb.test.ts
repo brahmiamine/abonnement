@@ -4,31 +4,31 @@ type Row = Record<string, unknown>
 const tables: Record<string, Row[]> = {}
 const inserted: Row[][] = []
 
-vi.mock('./supabase', () => {
-  const builder = (table: string) => ({
-    select: () => ({
-      order: async () => ({ data: [...(tables[table] ?? [])], error: null }),
-    }),
-    insert: async (rows: Row[]) => {
-      inserted.push(rows)
-      tables[table] = [...(tables[table] ?? []), ...rows]
-      return { error: null }
-    },
-    upsert: async (row: Row) => {
-      const list = (tables[table] ??= [])
-      const index = list.findIndex((item) => item.id === row.id)
-      if (index >= 0) list[index] = row
-      else list.push(row)
-      return { error: null }
-    },
-    delete: () => ({
-      eq: async (_key: string, id: string) => {
-        tables[table] = (tables[table] ?? []).filter((item) => item.id !== id)
-        return { error: null }
-      },
-    }),
-  })
-  return { supabase: { from: builder } }
+// Simule l'API : routes /categories, /provider-templates et /providers.
+vi.mock('./api', () => {
+  const tableFor: Record<string, string> = {
+    '/categories': 'subscription_categories',
+    '/provider-templates': 'subscription_provider_templates',
+    '/providers': 'subscription_providers',
+  }
+  const api = async (method: string, path: string, body?: Row[]) => {
+    if (method === 'GET') return [...(tables[tableFor[path]] ?? [])]
+    if (method === 'PUT') {
+      const list = (tables.subscription_providers ??= [])
+      inserted.push(body!)
+      for (const row of body!) {
+        const index = list.findIndex((item) => item.id === row.id)
+        if (index >= 0) list[index] = row
+        else list.push(row)
+      }
+      return
+    }
+    if (method === 'DELETE') {
+      const id = decodeURIComponent(path.split('/').pop()!)
+      tables.subscription_providers = (tables.subscription_providers ?? []).filter((item) => item.id !== id)
+    }
+  }
+  return { api }
 })
 
 const { ensureProviders, deleteProvider, loadCategories, saveProvider } = await import('./providersDb')
@@ -90,7 +90,7 @@ describe('ensureProviders', () => {
 describe('saveProvider / loadCategories', () => {
   it('enregistre avec les valeurs par défaut attendues', async () => {
     await saveProvider({ id: 'x', name: 'X', category: 'Autre', logo: '', website: '', color: '' }, 'u1')
-    expect(tables.subscription_providers[0]).toMatchObject({ id: 'x', user_id: 'u1', website: null, color: null, logo: '' })
+    expect(tables.subscription_providers[0]).toMatchObject({ id: 'x', website: null, color: null, logo: '' })
   })
 
   it('charge les catégories', async () => {

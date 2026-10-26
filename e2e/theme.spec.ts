@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mockSupabase } from './support/mockSupabase'
+import { mockApi } from './support/mockApi'
 
 const themeOf = (page: import('@playwright/test').Page) =>
   page.evaluate(() => document.documentElement.dataset.theme)
@@ -11,14 +11,14 @@ const toggle = async (page: import('@playwright/test').Page) => {
 }
 
 test('le thème sombre est appliqué par défaut', async ({ page }) => {
-  await mockSupabase(page)
+  await mockApi(page)
   await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Mes abonnements', level: 1 })).toBeVisible()
   expect(await themeOf(page)).toBe('dark')
 })
 
 test('le thème clair est conservé après rafraîchissement', async ({ page }) => {
-  await mockSupabase(page)
+  await mockApi(page)
   await toggle(page)
   await expect.poll(() => themeOf(page)).toBe('light')
   await page.reload()
@@ -27,7 +27,7 @@ test('le thème clair est conservé après rafraîchissement', async ({ page }) 
 })
 
 test('le thème est appliqué avant le rendu de React (pas de flash)', async ({ page }) => {
-  await mockSupabase(page)
+  await mockApi(page)
   await page.addInitScript(() => localStorage.setItem('subly-theme', 'light'))
   // On bloque l'API : seule la valeur locale peut expliquer le thème.
   await page.goto('./', { waitUntil: 'commit' })
@@ -35,7 +35,7 @@ test('le thème est appliqué avant le rendu de React (pas de flash)', async ({ 
 })
 
 test('le choix local prime sur une valeur distante obsolète', async ({ page }) => {
-  await mockSupabase(page, { theme: 'dark' })
+  await mockApi(page, { theme: 'dark' })
   await page.addInitScript(() => localStorage.setItem('subly-theme', 'light'))
   await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Mes abonnements', level: 1 })).toBeVisible()
@@ -43,7 +43,7 @@ test('le choix local prime sur une valeur distante obsolète', async ({ page }) 
 })
 
 test('le thème distant est utilisé sur un nouvel appareil', async ({ page }) => {
-  await mockSupabase(page, { theme: 'light' })
+  await mockApi(page, { theme: 'light' })
   await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Mes abonnements', level: 1 })).toBeVisible()
   // Le thème distant arrive avec les données, juste après le squelette de chargement.
@@ -51,7 +51,7 @@ test('le thème distant est utilisé sur un nouvel appareil', async ({ page }) =
 })
 
 test('le thème est conservé sur toutes les pages', async ({ page }) => {
-  await mockSupabase(page)
+  await mockApi(page)
   await toggle(page)
   for (const hash of ['home', 'subscriptions', 'expenses', 'providers']) {
     await page.goto(`./#/${hash}`)

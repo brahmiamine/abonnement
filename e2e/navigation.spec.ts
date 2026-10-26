@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test'
-import { mockSupabase } from './support/mockSupabase'
+import { mockApi } from './support/mockApi'
 import { navigate } from './support/app'
 import { SCREENS } from './support/screens'
 
 test.beforeEach(async ({ page }) => {
-  await mockSupabase(page)
+  await mockApi(page)
 })
 
 for (const screen of SCREENS) {

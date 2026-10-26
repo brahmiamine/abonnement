@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test'
-import { mockSupabase, type MockBackend } from './support/mockSupabase'
+import { mockApi, type MockBackend } from './support/mockApi'
 import { openAddModal } from './support/app'
 
 const NEW_PROVIDERS = ['Free Mobile', 'Strong8K IPTV', 'Trex IPTV', 'King365 IPTV']
 
 let backend: MockBackend
 test.beforeEach(async ({ page }) => {
-  backend = await mockSupabase(page)
+  backend = await mockApi(page)
 })
 
 test('Free Mobile, Strong8K, Trex et King365 IPTV sont ajoutés au catalogue', async ({ page }) => {

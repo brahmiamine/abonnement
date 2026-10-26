@@ -1,31 +1,34 @@
 import { useEffect, useState } from 'react'
-import type { Session } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { auth, takeRecoveryToken, type Session } from '../lib/api'
 
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null)
+  const [session, setSession] = useState<Session | null>(() => auth.getSession())
   const [authReady, setAuthReady] = useState(false)
   const [passwordRecovery, setPasswordRecovery] = useState(false)
 
   useEffect(() => {
     let active = true
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active) return
-      setSession(data.session)
-      setAuthReady(true)
-    })
-
-    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+    const unsubscribe = auth.onChange((nextSession) => {
       setSession(nextSession)
-      setAuthReady(true)
-      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true)
-      if (event === 'SIGNED_OUT') setPasswordRecovery(false)
+      if (!nextSession) setPasswordRecovery(false)
     })
+
+    const recoveryToken = takeRecoveryToken()
+    const start = recoveryToken
+      ? auth.verifyRecovery(recoveryToken).then(() => {
+          if (active) setPasswordRecovery(true)
+        })
+      : auth.refresh()
+
+    start
+      .catch((error) => console.error('Subly auth check failed', error))
+      .finally(() => {
+        if (active) setAuthReady(true)
+      })
 
     return () => {
       active = false
-      listener.subscription.unsubscribe()
+      unsubscribe()
     }
   }, [])
 
@@ -34,6 +37,6 @@ export function useAuth() {
     authReady,
     passwordRecovery,
     completePasswordRecovery: () => setPasswordRecovery(false),
-    signOut: () => supabase.auth.signOut(),
+    signOut: () => auth.signOut(),
   }
 }

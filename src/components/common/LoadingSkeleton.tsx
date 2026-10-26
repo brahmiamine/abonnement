@@ -2,10 +2,10 @@ import { RefreshCw } from 'lucide-react'
 
 const ROWS = [0, 1, 2, 3]
 
-/** Squelette animé affiché pendant le premier chargement des données Supabase. */
+/** Squelette animé affiché pendant le premier chargement des données. */
 export function LoadingSkeleton() {
   return (
-    <div className="skeleton" role="status" aria-label="Synchronisation avec Supabase…">
+    <div className="skeleton" role="status" aria-label="Synchronisation…">
       <div className="metrics-grid">
         {ROWS.map((row) => <div key={row} className="skeleton-block skeleton-metric" />)}
       </div>
@@ -24,7 +24,7 @@ export function LoadingSkeleton() {
       </div>
       <div className="skeleton-caption">
         <RefreshCw size={14} className="spin" />
-        <span>Synchronisation avec Supabase…</span>
+        <span>Synchronisation…</span>
       </div>
     </div>
   )

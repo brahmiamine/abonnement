@@ -59,21 +59,20 @@ export function seedData(): Record<string, Row[]> {
   }
 }
 
-const parseFilters = (url: URL) => {
-  const filters: Array<[string, string]> = []
-  url.searchParams.forEach((value, key) => {
-    if (value.startsWith('eq.')) filters.push([key, value.slice(3)])
-  })
-  return filters
-}
-
 export type MockBackend = {
   tables: Record<string, Row[]>
   failTable?: string
 }
 
-/** Remplace entièrement Supabase (auth + PostgREST) par une base en mémoire. */
-export async function mockSupabase(page: Page, options: {
+const TABLE_BY_PATH: Record<string, string> = {
+  categories: 'subscription_categories',
+  'provider-templates': 'subscription_provider_templates',
+  providers: 'subscription_providers',
+  subscriptions: 'subscriptions',
+}
+
+/** Remplace entièrement l'API Subly (auth + données) par une base en mémoire. */
+export async function mockApi(page: Page, options: {
   signedIn?: boolean
   data?: Record<string, Row[]>
   theme?: 'dark' | 'light'
@@ -85,16 +84,8 @@ export async function mockSupabase(page: Page, options: {
 
   if (signedIn) {
     await page.addInitScript((user) => {
-      const session = {
-        access_token: 'header.payload.signature',
-        refresh_token: 'refresh',
-        token_type: 'bearer',
-        expires_in: 3600 * 24 * 365,
-        expires_at: Math.floor(Date.now() / 1000) + 3600 * 24 * 365,
-        user: { ...user, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' },
-      }
-      if (!window.localStorage.getItem('sb-ewswqwmaejddwqiwaspq-auth-token')) {
-        window.localStorage.setItem('sb-ewswqwmaejddwqiwaspq-auth-token', JSON.stringify(session))
+      if (!window.localStorage.getItem('subly-session-v1')) {
+        window.localStorage.setItem('subly-session-v1', JSON.stringify({ token: 'test-token', user }))
       }
     }, USER)
   }
@@ -104,61 +95,59 @@ export async function mockSupabase(page: Page, options: {
       status,
       contentType: 'application/json',
       headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' },
-      body: JSON.stringify(body),
+      body: status === 204 ? '' : JSON.stringify(body),
     })
 
-  await page.route('**/*.supabase.co/**', async (route) => {
+  await page.route('**/abonnement-api.clubika.com/**', async (route) => {
     const request = route.request()
     const url = new URL(request.url())
     const method = request.method()
+    const [resource, id] = url.pathname.split('/').filter(Boolean).map(decodeURIComponent)
 
     if (method === 'OPTIONS') return json(route, {}, 204)
 
-    if (url.pathname.startsWith('/auth/v1')) {
-      if (url.pathname.endsWith('/user')) return json(route, { ...USER, aud: 'authenticated' })
-      if (url.pathname.endsWith('/logout')) return json(route, {}, 204)
-      if (url.pathname.endsWith('/token')) return json(route, { error: 'invalid_grant', error_description: 'Invalid login credentials' }, 400)
-      return json(route, {})
+    if (resource === 'auth') {
+      if (id === 'config') return json(route, { emailEnabled: true, minPasswordLength: 8 })
+      if (id === 'user') return json(route, { user: USER })
+      if (id === 'logout') return json(route, null, 204)
+      if (id === 'login') return json(route, { error: 'invalid_credentials', message: 'Adresse e-mail ou mot de passe incorrect.' }, 400)
+      return json(route, null, 204)
     }
 
-    const table = url.pathname.replace('/rest/v1/', '')
+    if (resource === 'settings') {
+      const rows = (backend.tables.subscription_settings ??= [])
+      if (method === 'GET') {
+        const row = rows[0]
+        return json(route, { settings: row ? { theme: row.theme, reminders_enabled: row.reminders_enabled } : null })
+      }
+      backend.tables.subscription_settings = [{ user_id: USER.id, ...(request.postDataJSON() as Row) }]
+      return json(route, null, 204)
+    }
+
+    const table = TABLE_BY_PATH[resource]
+    if (!table) return json(route, { error: 'not_found' }, 404)
     const rows = (backend.tables[table] ??= [])
 
-    if (backend.failTable === table && method !== 'GET') return json(route, { message: 'boom' }, 500)
+    if (backend.failTable === table && method !== 'GET') return json(route, { error: 'server_error', message: 'boom' }, 500)
 
-    if (method === 'GET') {
-      const filters = parseFilters(url)
-      const result = rows.filter((row) => filters.every(([key, value]) => String(row[key]) === value))
-      const single = (request.headers().accept || '').includes('vnd.pgrst.object')
-      if (single) {
-        return result.length
-          ? json(route, result[0])
-          : json(route, { code: 'PGRST116', details: 'The result contains 0 rows', message: 'JSON object requested' }, 406)
-      }
-      return json(route, result)
-    }
+    if (method === 'GET') return json(route, rows)
 
-    if (method === 'POST') {
-      const payload = request.postDataJSON() as Row | Row[]
-      const incoming = Array.isArray(payload) ? payload : [payload]
-      const keys = table === 'subscription_providers' ? ['user_id', 'id'] : table === 'subscription_settings' ? ['user_id'] : ['id']
-      for (const item of incoming) {
-        const index = rows.findIndex((row) => keys.every((key) => row[key] === item[key]))
+    if (method === 'PUT') {
+      for (const item of request.postDataJSON() as Row[]) {
+        const index = rows.findIndex((row) => row.id === item.id)
         if (index >= 0) rows[index] = { ...rows[index], ...item }
-        else rows.push(item)
+        else rows.push({ user_id: USER.id, ...item })
       }
-      return json(route, [], 201)
+      return json(route, null, 204)
     }
 
     if (method === 'DELETE') {
-      const filters = parseFilters(url)
-      backend.tables[table] = rows.filter((row) => !filters.every(([key, value]) => String(row[key]) === value))
-      return json(route, [], 204)
+      backend.tables[table] = id === undefined ? [] : rows.filter((row) => row.id !== id)
+      return json(route, null, 204)
     }
 
-    return json(route, [])
+    return json(route, null, 204)
   })
-
   // Les favicons externes ne doivent pas ralentir ni rendre instables les tests.
   await page.route('**/www.google.com/s2/favicons**', (route) =>
     route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#7c5cff"/></svg>' }),

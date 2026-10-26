@@ -1,16 +1,16 @@
 import { expect, test } from '@playwright/test'
-import { USER, longName, mockSupabase } from './support/mockSupabase'
+import { USER, longName, mockApi } from './support/mockApi'
 import { navigate, openAddModal } from './support/app'
 
 test.describe('connexion', () => {
   test('affiche l’écran d’authentification quand on est déconnecté', async ({ page }) => {
-    await mockSupabase(page, { signedIn: false })
+    await mockApi(page, { signedIn: false })
     await page.goto('./')
     await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible()
   })
 
   test('un mauvais mot de passe affiche une erreur', async ({ page }) => {
-    await mockSupabase(page, { signedIn: false })
+    await mockApi(page, { signedIn: false })
     await page.goto('./')
     await page.getByPlaceholder('nom@email.com').fill('a@b.fr')
     await page.locator('input[type=password]').fill('mauvais-mdp')
@@ -19,7 +19,7 @@ test.describe('connexion', () => {
   })
 
   test('les écrans d’inscription et de mot de passe oublié restent dans l’écran', async ({ page }) => {
-    await mockSupabase(page, { signedIn: false })
+    await mockApi(page, { signedIn: false })
     await page.goto('./')
     const fits = () => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
 
@@ -39,7 +39,7 @@ test.describe('connexion', () => {
 
 test.describe('abonnements', () => {
   test.beforeEach(async ({ page }) => {
-    await mockSupabase(page)
+    await mockApi(page)
   })
 
   test('l’accueil affiche les indicateurs et les prochaines échéances', async ({ page }) => {
@@ -118,7 +118,7 @@ test.describe('abonnements', () => {
   })
 
   test('une erreur de sauvegarde est signalée sans casser l’écran', async ({ page }) => {
-    const backend = await mockSupabase(page)
+    const backend = await mockApi(page)
     backend.failTable = 'subscriptions'
     await page.goto('./#/subscriptions')
     await openAddModal(page)

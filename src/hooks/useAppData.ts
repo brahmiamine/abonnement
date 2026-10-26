@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { Session } from '@supabase/supabase-js'
+import type { Session } from '../lib/api'
 import { defaultSettings, initialSettings, uid } from '../config'
 import { readStoredTheme, storeTheme, themeColor } from '../domain/theme'
 import { rollAutoRenewalForward } from '../domain/subscriptions'

@@ -1,9 +1,8 @@
 import type { Settings, Subscription } from '../types'
-import { supabase } from './supabase'
+import { api } from './api'
 
 type SubscriptionRow = {
   id: string
-  user_id: string
   provider_id: string | null
   name: string
   logo: string
@@ -21,9 +20,6 @@ type SubscriptionRow = {
   notes: string | null
   created_at: string
 }
-
-const SUBSCRIPTION_COLUMNS =
-  'id,user_id,provider_id,name,logo,website,category,price,currency,cycle,start_date,renewal_date,expiration_date,status,auto_renew,remind_days,notes,created_at'
 
 const fromRow = (row: SubscriptionRow): Subscription => ({
   id: row.id,
@@ -45,9 +41,8 @@ const fromRow = (row: SubscriptionRow): Subscription => ({
   createdAt: row.created_at,
 })
 
-const toRow = (item: Subscription, userId: string) => ({
+const toRow = (item: Subscription) => ({
   id: item.id,
-  user_id: userId,
   provider_id: item.providerId || null,
   name: item.name,
   logo: item.logo || '',
@@ -65,65 +60,42 @@ const toRow = (item: Subscription, userId: string) => ({
   notes: item.notes || null,
 })
 
+// userId est conservé dans les signatures : l'API déduit l'utilisateur de la session.
 export async function loadSubscriptions() {
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .select(SUBSCRIPTION_COLUMNS)
-    .order('renewal_date', { ascending: true })
-
-  if (error) throw error
-  return (data as SubscriptionRow[]).map(fromRow)
+  const rows = await api<SubscriptionRow[]>('GET', '/subscriptions')
+  return rows.map(fromRow)
 }
 
-export async function upsertSubscription(item: Subscription, userId: string) {
-  const { error } = await supabase
-    .from('subscriptions')
-    .upsert(toRow(item, userId), { onConflict: 'id' })
-
-  if (error) throw error
+export async function upsertSubscription(item: Subscription, _userId: string) {
+  await api('PUT', '/subscriptions', [toRow(item)])
 }
 
-export async function upsertSubscriptions(items: Subscription[], userId: string) {
+export async function upsertSubscriptions(items: Subscription[], _userId: string) {
   if (!items.length) return
-
-  const { error } = await supabase
-    .from('subscriptions')
-    .upsert(items.map((item) => toRow(item, userId)), { onConflict: 'id' })
-
-  if (error) throw error
+  await api('PUT', '/subscriptions', items.map(toRow))
 }
 
 export async function removeSubscription(id: string) {
-  const { error } = await supabase.from('subscriptions').delete().eq('id', id)
-  if (error) throw error
+  await api('DELETE', `/subscriptions/${encodeURIComponent(id)}`)
 }
 
-export async function removeAllSubscriptions(userId: string) {
-  const { error } = await supabase.from('subscriptions').delete().eq('user_id', userId)
-  if (error) throw error
+export async function removeAllSubscriptions(_userId: string) {
+  await api('DELETE', '/subscriptions')
 }
 
 export async function loadUserSettings(): Promise<Partial<Settings> | null> {
-  const { data, error } = await supabase
-    .from('subscription_settings')
-    .select('theme,reminders_enabled')
-    .maybeSingle()
-
-  if (error) throw error
-  if (!data) return null
+  const { settings } = await api<{ settings: { theme: Settings['theme']; reminders_enabled: boolean } | null }>('GET', '/settings')
+  if (!settings) return null
 
   return {
-    theme: data.theme,
-    remindersEnabled: data.reminders_enabled,
+    theme: settings.theme,
+    remindersEnabled: settings.reminders_enabled,
   }
 }
 
-export async function saveUserSettings(settings: Settings, userId: string) {
-  const { error } = await supabase.from('subscription_settings').upsert({
-    user_id: userId,
+export async function saveUserSettings(settings: Settings, _userId: string) {
+  await api('PUT', '/settings', {
     theme: settings.theme,
     reminders_enabled: settings.remindersEnabled,
-  }, { onConflict: 'user_id' })
-
-  if (error) throw error
+  })
 }

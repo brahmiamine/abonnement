@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Eye, EyeOff, LockKeyhole, Mail, RefreshCw, UserPlus } from 'lucide-react'
-import { APP_URL } from '../../config'
-import { supabase } from '../../lib/supabase'
+import { auth } from '../../lib/api'
 
 type Mode = 'login' | 'signup' | 'forgot'
 
@@ -12,6 +11,16 @@ export function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  // « Mot de passe oublié » n'est proposé que si le serveur sait envoyer des e-mails.
+  const [emailEnabled, setEmailEnabled] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    auth.config()
+      .then((config) => { if (active) setEmailEnabled(config.emailEnabled) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -20,22 +29,12 @@ export function AuthScreen() {
 
     try {
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
+        await auth.signIn(email, password)
       } else if (mode === 'forgot') {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: APP_URL })
-        if (error) throw error
+        await auth.resetPasswordForEmail(email)
         setMessage('Lien envoyé. Consulte ton e-mail puis ouvre le lien pour choisir un nouveau mot de passe.')
       } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: APP_URL },
-        })
-        if (error) throw error
-        if (!data.session) {
-          setMessage('Compte créé. Vérifie ton e-mail pour confirmer ton inscription, puis reconnecte-toi.')
-        }
+        await auth.signUp(email, password)
       }
     } catch (value) {
       setMessage(value instanceof Error ? value.message : 'Connexion impossible.')
@@ -62,7 +61,7 @@ export function AuthScreen() {
           <p className="auth-copy">
             {mode === 'forgot'
               ? 'Indique ton adresse e-mail. Nous t’enverrons un lien sécurisé pour définir un nouveau mot de passe.'
-              : 'Tes données sont synchronisées dans Supabase et protégées par ton compte.'}
+              : 'Tes données sont synchronisées sur ton serveur et protégées par ton compte.'}
           </p>
 
           <form onSubmit={submit}>
@@ -85,7 +84,7 @@ export function AuthScreen() {
               <div className="field">
                 <div className="field-label-row">
                   <label>Mot de passe</label>
-                  {mode === 'login' && (
+                  {mode === 'login' && emailEnabled && (
                     <button
                       type="button"
                       className="forgot-link"

@@ -1,6 +1,6 @@
 import type { Category, Provider } from '../types'
 import { missingExtraProviders } from '../data/providers'
-import { supabase } from './supabase'
+import { api } from './api'
 
 type CategoryRow = { id: string; label: string }
 type ProviderRow = {
@@ -22,31 +22,28 @@ const fromRow = (row: ProviderRow): Provider => ({
 })
 
 export async function loadCategories(): Promise<Category[]> {
-  const { data, error } = await supabase
-    .from('subscription_categories')
-    .select('id,label')
-    .order('sort_order', { ascending: true })
-  if (error) throw error
-  return (data as CategoryRow[]).map((row) => row.id as Category)
+  const rows = await api<CategoryRow[]>('GET', '/categories')
+  return rows.map((row) => row.id as Category)
 }
 
 export async function loadProviderTemplates(): Promise<Provider[]> {
-  const { data, error } = await supabase
-    .from('subscription_provider_templates')
-    .select('id,name,category,logo,website,color')
-    .order('sort_order', { ascending: true })
-  if (error) throw error
-  return (data as ProviderRow[]).map(fromRow)
+  const rows = await api<ProviderRow[]>('GET', '/provider-templates')
+  return rows.map(fromRow)
 }
 
 export async function loadProviders(): Promise<Provider[]> {
-  const { data, error } = await supabase
-    .from('subscription_providers')
-    .select('id,name,category,logo,website,color')
-    .order('name', { ascending: true })
-  if (error) throw error
-  return (data as ProviderRow[]).map(fromRow)
+  const rows = await api<ProviderRow[]>('GET', '/providers')
+  return rows.map(fromRow)
 }
+
+const toRow = (provider: Provider) => ({
+  id: provider.id,
+  name: provider.name,
+  category: provider.category,
+  logo: provider.logo || '',
+  website: provider.website || null,
+  color: provider.color || null,
+})
 
 const seededKey = (userId: string) => `subly-seeded-providers-v1:${userId}`
 
@@ -67,24 +64,24 @@ const writeSeeded = (userId: string, ids: string[]) => {
   }
 }
 
-export async function ensureProviders(userId: string): Promise<Provider[]> {
+// Deux chargements simultanés (StrictMode, onglet réactivé…) partagent le même amorçage.
+const inflight = new Map<string, Promise<Provider[]>>()
+
+export function ensureProviders(userId: string): Promise<Provider[]> {
+  const pending = inflight.get(userId)
+  if (pending) return pending
+  const promise = seedProviders(userId).finally(() => inflight.delete(userId))
+  inflight.set(userId, promise)
+  return promise
+}
+
+async function seedProviders(userId: string): Promise<Provider[]> {
   let current = await loadProviders()
 
   if (!current.length) {
     const templates = await loadProviderTemplates()
     if (templates.length) {
-      const { error } = await supabase.from('subscription_providers').insert(
-        templates.map((provider) => ({
-          user_id: userId,
-          id: provider.id,
-          name: provider.name,
-          category: provider.category,
-          logo: provider.logo,
-          website: provider.website || null,
-          color: provider.color || null,
-        })),
-      )
-      if (error) throw error
+      await api('PUT', '/providers', templates.map(toRow))
       current = await loadProviders()
     }
   }
@@ -100,21 +97,10 @@ export async function ensureProviders(userId: string): Promise<Provider[]> {
   return current
 }
 
-export async function saveProvider(provider: Provider, userId: string) {
-  const { error } = await supabase.from('subscription_providers').upsert({
-    user_id: userId,
-    id: provider.id,
-    name: provider.name,
-    category: provider.category,
-    logo: provider.logo || '',
-    website: provider.website || null,
-    color: provider.color || null,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'user_id,id' })
-  if (error) throw error
+export async function saveProvider(provider: Provider, _userId: string) {
+  await api('PUT', '/providers', [toRow(provider)])
 }
 
 export async function deleteProvider(id: string) {
-  const { error } = await supabase.from('subscription_providers').delete().eq('id', id)
-  if (error) throw error
+  await api('DELETE', `/providers/${encodeURIComponent(id)}`)
 }

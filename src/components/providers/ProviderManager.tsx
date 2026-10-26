@@ -57,7 +57,7 @@ export function ProviderManager({
     <div className="providers-panel panel rise">
       <div className="panel-header provider-manager-header">
         <div>
-          <span className="eyebrow">Catalogue Supabase</span>
+          <span className="eyebrow">Catalogue</span>
           <h2>Fournisseurs</h2>
           <p>Ajoute, modifie ou supprime les fournisseurs et leurs logos.</p>
         </div>

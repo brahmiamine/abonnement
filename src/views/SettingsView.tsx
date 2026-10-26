@@ -104,7 +104,7 @@ export function SettingsView({
         <div className="settings-icon"><Download size={21} /></div>
         <div className="settings-copy">
           <h3>Export / import</h3>
-          <p>Les données restent dans Supabase ; tu peux aussi créer une copie JSON portable.</p>
+          <p>Les données restent sur ton serveur ; tu peux aussi créer une copie JSON portable.</p>
         </div>
         <div className="settings-actions">
           <button className="secondary-btn" onClick={onExport}><Download size={17} /> Exporter</button>
@@ -123,7 +123,7 @@ export function SettingsView({
         <div className="settings-icon"><Cloud size={21} /></div>
         <div className="settings-copy">
           <h3>Compte & synchronisation</h3>
-          <p>{email} · données sauvegardées dans Supabase.</p>
+          <p>{email} · données sauvegardées sur ton serveur.</p>
         </div>
         <button className="secondary-btn" onClick={() => void onSignOut()}>
           <LogOut size={17} /> Déconnexion
@@ -134,7 +134,7 @@ export function SettingsView({
         <div className="settings-icon"><Trash2 size={21} /></div>
         <div className="settings-copy">
           <h3>Effacer les abonnements</h3>
-          <p>Supprime définitivement tous tes abonnements de Supabase. Les fournisseurs sont conservés.</p>
+          <p>Supprime définitivement tous tes abonnements du serveur. Les fournisseurs sont conservés.</p>
         </div>
         <button className="secondary-btn danger-btn" onClick={() => void onClearSubscriptions()}>
           <Trash2 size={17} /> Effacer

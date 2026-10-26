@@ -64,7 +64,7 @@ export function Sidebar({
 
       <div className="sidebar-footer sidebar-label">
         <span><i className="pulse-dot" />Données privées</span>
-        <small>Synchronisées avec Supabase</small>
+        <small>Synchronisées avec ton compte</small>
       </div>
     </aside>
   )

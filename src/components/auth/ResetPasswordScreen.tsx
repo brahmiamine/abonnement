@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Check, Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
+import { auth } from '../../lib/api'
 
 export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) {
   const [password, setPassword] = useState('')
@@ -27,8 +27,7 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
 
     setLoading(true)
     try {
-      const { error } = await supabase.auth.updateUser({ password })
-      if (error) throw error
+      await auth.updatePassword(password)
       window.history.replaceState({}, document.title, import.meta.env.BASE_URL)
       onComplete()
     } catch (value) {
