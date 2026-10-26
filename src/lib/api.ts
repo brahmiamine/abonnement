@@ -1,5 +1,5 @@
 // Client de l'API Subly (MariaDB). Surchargeable via VITE_API_URL (voir .env.example).
-export const API_URL = (import.meta.env.VITE_API_URL ?? 'https://subly.clubika.com').replace(/\/+$/, '')
+export const API_URL = (import.meta.env.VITE_API_URL ?? 'https://subly.clubika.com/api').replace(/\/+$/, '')
 
 const SESSION_KEY = 'subly-session-v1'
 

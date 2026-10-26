@@ -46,11 +46,11 @@ Le navigateur ne parle jamais directement à la base : il appelle l'API de `serv
 - Schéma : `server/schema.sql`, appliqué automatiquement au démarrage de l'API (idempotent).
 - Catalogue de départ : `server/seed.sql` (catégories et modèles de fournisseurs), à appliquer une fois : `mariadb abonnement < server/seed.sql`.
 - Configuration : copier `server/.env.example` vers `server/.env` (connexion MariaDB, origines CORS autorisées, SMTP optionnel).
-- Déploiement sur le VPS : `cd server && docker compose up -d --build`. L'API est servie par Caddy sur `https://subly.clubika.com`.
+- Déploiement sur le VPS : `cd server && docker compose up -d --build`. Le conteneur sert le site compilé sur `https://subly.clubika.com` et l'API sous `https://subly.clubika.com/api` (derrière Caddy). Le build du site se fait dans l'image Docker avec `VITE_BASE=/`.
 - Sessions : jeton opaque aléatoire (60 jours), stocké haché (SHA-256) en base ; mots de passe hachés avec bcrypt.
 - « Mot de passe oublié » n'apparaît que si `SMTP_HOST` est renseigné ; le lien envoyé est valable 1 heure et à usage unique.
 
-Le front cible `https://subly.clubika.com` par défaut ; pour une autre API, copiez `.env.example` vers `.env.local` et renseignez `VITE_API_URL`.
+Le front cible `https://subly.clubika.com/api` par défaut ; pour une autre API, copiez `.env.example` vers `.env.local` et renseignez `VITE_API_URL`.
 
 ## Build
 

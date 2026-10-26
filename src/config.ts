@@ -1,7 +1,6 @@
 import { readStoredTheme } from './domain/theme'
 import type { Settings } from './types'
 
-export const APP_URL = 'https://brahmiamine.github.io/abonnement/'
 export const NOTIFIED_KEY = 'subly-notified-v1'
 
 export const defaultSettings: Settings = {

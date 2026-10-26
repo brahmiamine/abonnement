@@ -102,7 +102,7 @@ export async function mockApi(page: Page, options: {
     const request = route.request()
     const url = new URL(request.url())
     const method = request.method()
-    const [resource, id] = url.pathname.split('/').filter(Boolean).map(decodeURIComponent)
+    const [resource, id] = url.pathname.replace(/^\/api/, '').split('/').filter(Boolean).map(decodeURIComponent)
 
     if (method === 'OPTIONS') return json(route, {}, 204)
 

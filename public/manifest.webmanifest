@@ -1,11 +1,11 @@
 {
   "name": "Subly",
-  "id": "/abonnement/?app=subly",
+  "id": "./?app=subly",
   "short_name": "Subly",
   "description": "Suivez vos abonnements, leurs échéances et vos dépenses récurrentes.",
   "lang": "fr",
-  "start_url": "/abonnement/",
-  "scope": "/abonnement/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0b1020",
@@ -13,19 +13,19 @@
   "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/abonnement/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/abonnement/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/abonnement/icon.svg",
+      "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
