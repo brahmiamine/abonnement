@@ -82,3 +82,13 @@ Les notifications Web nécessitent l'autorisation du navigateur et sont vérifi�
 ## Navigation
 
 L’écran courant est dans l’URL (`#/subscriptions`, `#/providers`…) : un rafraîchissement reste sur la même page. Le thème choisi est mémorisé sur l’appareil.
+
+## Déploiement automatique
+
+Chaque commit poussé sur `main` met l'application à jour :
+
+1. **GitHub Actions** exécute les tests (et publie la version GitHub Pages).
+2. **Le serveur** (`subly.clubika.com`) vérifie chaque minute si `main` a changé (`app-deploy.timer`, script `~/deploy/auto-deploy.sh`) : il récupère le commit, reconstruit l'image Docker (`docker compose up -d --build` dans `server/`), teste `/api/health`, et **revient automatiquement à la version précédente** si le nouveau build échoue ou ne répond pas.
+3. Le journal est dans `~/deploy/deploy.log` sur le serveur ; un commit refusé n'est pas retenté tant qu'un nouveau commit n'arrive pas.
+
+La mise en ligne prend en général 1 à 3 minutes après le push.
